@@ -16,9 +16,37 @@ const GAME_STATE = {
   particles: [],
 };
 
+const keys = {
+  ArrowLeft: false,
+  ArrowRight: false,
+  KeyA: false,
+  KeyD: false,
+};
+
+window.addEventListener('keydown', (e) => {
+  if (e.code in keys) {
+    keys[e.code] = true;
+    e.preventDefault();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code in keys) {
+    keys[e.code] = false;
+  }
+});
+
 function update(dt) {
   // Advance simulation time and apply per-frame logic (spheres, obstacles, scoring).
   GAME_STATE.time += dt;
+
+  const { baseSpeed } = CONFIG.rotation;
+  if (keys.ArrowLeft || keys.KeyA) {
+    GAME_STATE.theta -= baseSpeed * dt;
+  }
+  if (keys.ArrowRight || keys.KeyD) {
+    GAME_STATE.theta += baseSpeed * dt;
+  }
 }
 
 function drawOrbit() {
