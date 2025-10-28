@@ -28,6 +28,9 @@ const CONFIG = {
     spawnInterval: 1200,
     radius: 8,
     color: '#c4fcef',
+    width: 900,
+    height: 40,
+    gapWidth: 120,
   },
 
   difficulty: {

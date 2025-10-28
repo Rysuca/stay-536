@@ -14,6 +14,7 @@ const GAME_STATE = {
   time: 0,
   obstacles: [],
   particles: [],
+  spawnTimer: 0,
 };
 
 const keys = {
@@ -36,6 +37,36 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
+function spawnObstacle() {
+  const { obstacle, canvas: canvasCfg } = CONFIG;
+
+  const blockWidth = obstacle.width || canvasCfg.width;
+  const blockHeight = obstacle.height;
+  const gapWidth = obstacle.gapWidth;
+
+  // Randomly position the single vertical gap, keeping it fully on-screen.
+  const gapX = gapWidth / 2 + Math.random() * (blockWidth - gapWidth);
+
+  // Two solid segments: left and right of the gap.
+  const segments = [
+    { x: 0, w: gapX - gapWidth / 2 },
+    { x: gapX + gapWidth / 2, w: blockWidth - gapX - gapWidth / 2 },
+  ];
+
+  GAME_STATE.obstacles.push({
+    x: 0,
+    y: -blockHeight,
+    width: blockWidth,
+    height: blockHeight,
+    gapX,
+    gapWidth,
+    speed: obstacle.baseFallSpeed,
+    type: 'block',
+    passed: false,
+    segments,
+  });
+}
+
 function update(dt) {
   // Advance simulation time and apply per-frame logic (spheres, obstacles, scoring).
   GAME_STATE.time += dt;
@@ -46,6 +77,22 @@ function update(dt) {
   }
   if (keys.ArrowRight || keys.KeyD) {
     GAME_STATE.theta += baseSpeed * dt;
+  }
+
+  // Spawn obstacles on a fixed interval.
+  GAME_STATE.spawnTimer -= dt * 1000;
+  if (GAME_STATE.spawnTimer <= 0) {
+    spawnObstacle();
+    GAME_STATE.spawnTimer = CONFIG.obstacle.spawnInterval;
+  }
+
+  // Move obstacles downward and drop those that left the screen.
+  for (let i = GAME_STATE.obstacles.length - 1; i >= 0; i--) {
+    const ob = GAME_STATE.obstacles[i];
+    ob.y += ob.speed * dt;
+    if (ob.y > canvas.height) {
+      GAME_STATE.obstacles.splice(i, 1);
+    }
   }
 }
 
@@ -100,6 +147,23 @@ function drawDuo() {
   drawSphere(xc - r * cos, yc - r * sin, sphere.blueColor);
 }
 
+function drawObstacles() {
+  const color = CONFIG.obstacle.color;
+
+  ctx.save();
+  ctx.shadowBlur = 14;
+  ctx.shadowColor = color;
+  ctx.fillStyle = color;
+
+  for (const ob of GAME_STATE.obstacles) {
+    for (const seg of ob.segments) {
+      ctx.fillRect(ob.x + seg.x, ob.y, seg.w, ob.height);
+    }
+  }
+
+  ctx.restore();
+}
+
 function draw() {
   // Translucent fill instead of a full clear leaves a fading trail behind.
   ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
@@ -107,6 +171,7 @@ function draw() {
 
   drawOrbit();
   drawDuo();
+  drawObstacles();
 }
 
 function gameLoop(timestamp) {
@@ -132,6 +197,7 @@ function start() {
   GAME_STATE.time = 0;
   GAME_STATE.obstacles = [];
   GAME_STATE.particles = [];
+  GAME_STATE.spawnTimer = 0;
 
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
