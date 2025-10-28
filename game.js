@@ -21,11 +21,64 @@ function update(dt) {
   GAME_STATE.time += dt;
 }
 
+function drawOrbit() {
+  const { orbit } = CONFIG;
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(5, 217, 232, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = CONFIG.sphere.blueColor;
+  ctx.beginPath();
+  ctx.arc(orbit.centerX, orbit.centerY, orbit.radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSphere(x, y, color) {
+  ctx.save();
+  ctx.shadowBlur = 24;
+  ctx.shadowColor = color;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, CONFIG.sphere.radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawDuo() {
+  const { orbit, sphere } = CONFIG;
+  const { theta } = GAME_STATE;
+
+  const xc = orbit.centerX;
+  const yc = orbit.centerY;
+  const r = orbit.radius;
+
+  const cos = Math.cos(theta);
+  const sin = Math.sin(theta);
+
+  // Center of mass.
+  ctx.save();
+  ctx.fillStyle = 'rgba(196, 252, 239, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = '#c4fcef';
+  ctx.beginPath();
+  ctx.arc(xc, yc, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  drawSphere(xc + r * cos, yc + r * sin, sphere.redColor);
+  drawSphere(xc - r * cos, yc - r * sin, sphere.blueColor);
+}
+
 function draw() {
   // Clear the frame before painting the scene.
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawOrbit();
+  drawDuo();
 }
 
 function gameLoop(timestamp) {
