@@ -71,6 +71,7 @@ function drawSphere(x, y, color) {
   ctx.beginPath();
   ctx.arc(x, y, CONFIG.sphere.radius, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fill();
   ctx.restore();
 }
 
@@ -100,9 +101,8 @@ function drawDuo() {
 }
 
 function draw() {
-  // Clear the frame before painting the scene.
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#000';
+  // Translucent fill instead of a full clear leaves a fading trail behind.
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawOrbit();
