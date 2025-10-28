@@ -86,11 +86,15 @@ function update(dt) {
     GAME_STATE.spawnTimer = CONFIG.obstacle.spawnInterval;
   }
 
-  // Move obstacles downward and drop those that left the screen.
+  // Move obstacles downward, mark passed ones and drop those that left the screen.
+  const passLine = canvas.height / 2 + CONFIG.orbit.radius + CONFIG.sphere.radius;
   for (let i = GAME_STATE.obstacles.length - 1; i >= 0; i--) {
     const ob = GAME_STATE.obstacles[i];
     ob.y += ob.speed * dt;
-    if (ob.y > canvas.height) {
+    if (!ob.passed && ob.y > passLine) {
+      ob.passed = true;
+    }
+    if (ob.y > canvas.height + ob.height) {
       GAME_STATE.obstacles.splice(i, 1);
     }
   }
