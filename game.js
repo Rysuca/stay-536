@@ -67,6 +67,59 @@ function spawnObstacle() {
   });
 }
 
+function gameOver() {
+  GAME_STATE.running = false;
+}
+
+function sphereHitsObstacle(sx, sy, obstacle) {
+  const radius = CONFIG.sphere.radius;
+  const { x, y, width, height, gapX, gapWidth } = obstacle;
+  const gapHalf = gapWidth / 2;
+
+  const rects = [
+    { left: x, top: y, right: gapX - gapHalf, bottom: y + height },
+    { left: gapX + gapHalf, top: y, right: x + width, bottom: y + height },
+  ];
+
+  for (const rect of rects) {
+    if (rect.right <= rect.left || rect.bottom <= rect.top) continue;
+    const nearestX = Math.max(rect.left, Math.min(sx, rect.right));
+    const nearestY = Math.max(rect.top, Math.min(sy, rect.bottom));
+    const dx = sx - nearestX;
+    const dy = sy - nearestY;
+    if (dx * dx + dy * dy < radius * radius) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function checkCollisions() {
+  if (GAME_STATE.obstacles.length === 0) return;
+
+  const { orbit } = CONFIG;
+  const xc = orbit.centerX;
+  const yc = orbit.centerY;
+  const r = orbit.radius;
+  const cos = Math.cos(GAME_STATE.theta);
+  const sin = Math.sin(GAME_STATE.theta);
+
+  const spheres = [
+    { x: xc + r * cos, y: yc + r * sin },
+    { x: xc - r * cos, y: yc - r * sin },
+  ];
+
+  for (const ob of GAME_STATE.obstacles) {
+    for (const sphere of spheres) {
+      if (sphereHitsObstacle(sphere.x, sphere.y, ob)) {
+        gameOver();
+        return;
+      }
+    }
+  }
+}
+
 function update(dt) {
   // Advance simulation time and apply per-frame logic (spheres, obstacles, scoring).
   GAME_STATE.time += dt;
@@ -98,6 +151,8 @@ function update(dt) {
       GAME_STATE.obstacles.splice(i, 1);
     }
   }
+
+  checkCollisions();
 }
 
 function drawOrbit() {
