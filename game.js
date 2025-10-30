@@ -68,6 +68,7 @@ function spawnObstacle() {
       speed: obstacle.baseFallSpeed,
       type: 'laser',
       passed: false,
+      counted: false,
     });
     return;
   }
@@ -103,6 +104,7 @@ function spawnObstacle() {
       speed: obstacle.baseFallSpeed,
       type: 'narrow',
       passed: false,
+      counted: false,
       rects,
     });
     return;
@@ -127,6 +129,7 @@ function spawnObstacle() {
     speed: obstacle.baseFallSpeed,
     type: 'block',
     passed: false,
+    counted: false,
     segments,
   });
 }
@@ -237,6 +240,14 @@ function update(dt) {
     }
     if (ob.y > canvas.height + ob.height) {
       GAME_STATE.obstacles.splice(i, 1);
+    }
+  }
+
+  // Award a point for every obstacle the player has cleared.
+  for (const ob of GAME_STATE.obstacles) {
+    if (ob.passed && !ob.counted) {
+      ob.counted = true;
+      GAME_STATE.score += 1;
     }
   }
 
@@ -352,6 +363,18 @@ function drawObstacles() {
   ctx.restore();
 }
 
+function drawScore() {
+  ctx.save();
+  ctx.font = 'bold 24px "Courier New", monospace';
+  ctx.fillStyle = '#05d9e8';
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = '#05d9e8';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`SCORE: ${GAME_STATE.score}`, 16, 16);
+  ctx.restore();
+}
+
 function draw() {
   // Translucent fill instead of a full clear leaves a fading trail behind.
   ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
@@ -360,6 +383,7 @@ function draw() {
   drawOrbit();
   drawDuo();
   drawObstacles();
+  drawScore();
 }
 
 function gameLoop(timestamp) {
