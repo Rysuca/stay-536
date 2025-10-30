@@ -44,6 +44,30 @@ function spawnObstacle() {
   const blockHeight = obstacle.height;
   const gapWidth = obstacle.gapWidth;
 
+  // With a set chance, spawn a laser instead of a block with a gap.
+  if (Math.random() < obstacle.laserChance) {
+    const topH = obstacle.laserTopH;
+    const gapH = obstacle.laserGapH;
+    const botH = obstacle.laserBotH;
+    const gapY = topH;
+    const laserHeight = gapY + gapH + botH;
+
+    GAME_STATE.obstacles.push({
+      x: 0,
+      y: -laserHeight,
+      width: blockWidth,
+      height: laserHeight,
+      topH,
+      gapY,
+      gapH,
+      botH,
+      speed: obstacle.baseFallSpeed,
+      type: 'laser',
+      passed: false,
+    });
+    return;
+  }
+
   // Randomly position the single vertical gap, keeping it fully on-screen.
   const gapX = gapWidth / 2 + Math.random() * (blockWidth - gapWidth);
 
@@ -73,13 +97,28 @@ function gameOver() {
 
 function sphereHitsObstacle(sx, sy, obstacle) {
   const radius = CONFIG.sphere.radius;
-  const { x, y, width, height, gapX, gapWidth } = obstacle;
-  const gapHalf = gapWidth / 2;
+  const rects = [];
 
-  const rects = [
-    { left: x, top: y, right: gapX - gapHalf, bottom: y + height },
-    { left: gapX + gapHalf, top: y, right: x + width, bottom: y + height },
-  ];
+  if (obstacle.type === 'laser') {
+    const { x, y, width, topH, gapY, gapH, botH } = obstacle;
+    rects.push(
+      { left: x, top: y, right: x + width, bottom: y + topH },
+      {
+        left: x,
+        top: y + gapY + gapH,
+        right: x + width,
+        bottom: y + gapY + gapH + botH,
+      },
+    );
+  } else {
+    const { x, y, width, height, gapX, gapWidth } = obstacle;
+    const gapHalf = gapWidth / 2;
+
+    rects.push(
+      { left: x, top: y, right: gapX - gapHalf, bottom: y + height },
+      { left: gapX + gapHalf, top: y, right: x + width, bottom: y + height },
+    );
+  }
 
   for (const rect of rects) {
     if (rect.right <= rect.left || rect.bottom <= rect.top) continue;
@@ -208,6 +247,7 @@ function drawDuo() {
 
 function drawObstacles() {
   const color = CONFIG.obstacle.color;
+  const laserColor = CONFIG.obstacle.laserColor;
 
   ctx.save();
   ctx.shadowBlur = 14;
@@ -215,6 +255,24 @@ function drawObstacles() {
   ctx.fillStyle = color;
 
   for (const ob of GAME_STATE.obstacles) {
+    if (ob.type === 'laser') {
+      const bands = [
+        { bx: ob.x, by: ob.y, bw: ob.width, bh: ob.topH },
+        { bx: ob.x, by: ob.y + ob.gapY + ob.gapH, bw: ob.width, bh: ob.botH },
+      ];
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = laserColor;
+      ctx.fillStyle = laserColor;
+      for (const band of bands) {
+        ctx.fillRect(band.bx, band.by, band.bw, band.bh);
+        ctx.fillRect(band.bx, band.by, band.bw, band.bh);
+      }
+      continue;
+    }
+
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = color;
+    ctx.fillStyle = color;
     for (const seg of ob.segments) {
       ctx.fillRect(ob.x + seg.x, ob.y, seg.w, ob.height);
     }
