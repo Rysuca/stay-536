@@ -44,8 +44,12 @@ function spawnObstacle() {
   const blockHeight = obstacle.height;
   const gapWidth = obstacle.gapWidth;
 
+  const roll = Math.random();
+  const laserThreshold = obstacle.laserChance;
+  const narrowThreshold = obstacle.laserChance + obstacle.narrowChance;
+
   // With a set chance, spawn a laser instead of a block with a gap.
-  if (Math.random() < obstacle.laserChance) {
+  if (roll < laserThreshold) {
     const topH = obstacle.laserTopH;
     const gapH = obstacle.laserGapH;
     const botH = obstacle.laserBotH;
@@ -64,6 +68,42 @@ function spawnObstacle() {
       speed: obstacle.baseFallSpeed,
       type: 'laser',
       passed: false,
+    });
+    return;
+  }
+
+  // With a set chance, spawn a narrowing corridor: the gap shrinks top to bottom.
+  if (roll < narrowThreshold) {
+    const gapCenterX =
+      obstacle.gapTopWidth / 2 + Math.random() * (blockWidth - obstacle.gapTopWidth);
+    const segCount = obstacle.narrowSegments || 5;
+    const segH = blockHeight / segCount;
+    const topHalf = obstacle.gapTopWidth / 2;
+    const bottomHalf = obstacle.gapBottomWidth / 2;
+    const rects = [];
+
+    for (let i = 0; i < segCount; i++) {
+      const segTop = i * segH;
+      const t = (segTop + segH / 2) / blockHeight;
+      const half = topHalf + (bottomHalf - topHalf) * t;
+      rects.push(
+        { left: 0, top: segTop, right: gapCenterX - half, bottom: segTop + segH },
+        { left: gapCenterX + half, top: segTop, right: blockWidth, bottom: segTop + segH },
+      );
+    }
+
+    GAME_STATE.obstacles.push({
+      x: 0,
+      y: -blockHeight,
+      width: blockWidth,
+      height: blockHeight,
+      gapCenterX,
+      gapTopWidth: obstacle.gapTopWidth,
+      gapBottomWidth: obstacle.gapBottomWidth,
+      speed: obstacle.baseFallSpeed,
+      type: 'narrow',
+      passed: false,
+      rects,
     });
     return;
   }
@@ -110,6 +150,15 @@ function sphereHitsObstacle(sx, sy, obstacle) {
         bottom: y + gapY + gapH + botH,
       },
     );
+  } else if (obstacle.type === 'narrow') {
+    for (const r of obstacle.rects) {
+      rects.push({
+        left: r.left,
+        top: r.top + obstacle.y,
+        right: r.right,
+        bottom: r.bottom + obstacle.y,
+      });
+    }
   } else {
     const { x, y, width, height, gapX, gapWidth } = obstacle;
     const gapHalf = gapWidth / 2;
@@ -248,6 +297,7 @@ function drawDuo() {
 function drawObstacles() {
   const color = CONFIG.obstacle.color;
   const laserColor = CONFIG.obstacle.laserColor;
+  const narrowColor = CONFIG.obstacle.narrowColor;
 
   ctx.save();
   ctx.shadowBlur = 14;
@@ -266,6 +316,27 @@ function drawObstacles() {
       for (const band of bands) {
         ctx.fillRect(band.bx, band.by, band.bw, band.bh);
         ctx.fillRect(band.bx, band.by, band.bw, band.bh);
+      }
+      continue;
+    }
+
+    if (ob.type === 'narrow') {
+      const topHalf = ob.gapTopWidth / 2;
+      const bottomHalf = ob.gapBottomWidth / 2;
+      const topY = ob.y;
+      const bottomY = ob.y + ob.height;
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = narrowColor;
+      ctx.fillStyle = narrowColor;
+      const left = [ob.x, topY, ob.gapCenterX - topHalf, topY, ob.gapCenterX - bottomHalf, bottomY, ob.x, bottomY];
+      const right = [ob.gapCenterX + topHalf, topY, ob.x + ob.width, topY, ob.x + ob.width, bottomY, ob.gapCenterX + bottomHalf, bottomY];
+      for (const poly of [left, right]) {
+        ctx.beginPath();
+        ctx.moveTo(poly[0], poly[1]);
+        for (let i = 2; i < poly.length; i += 2) ctx.lineTo(poly[i], poly[i + 1]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fill();
       }
       continue;
     }

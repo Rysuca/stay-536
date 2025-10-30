@@ -36,6 +36,11 @@ const CONFIG = {
     laserTopH: 40,
     laserGapH: 130,
     laserBotH: 40,
+    narrowChance: 0.25,
+    gapTopWidth: 190,
+    gapBottomWidth: 70,
+    narrowSegments: 5,
+    narrowColor: '#a8ff3e',
   },
 
   difficulty: {
