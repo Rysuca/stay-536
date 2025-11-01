@@ -427,3 +427,34 @@ function start() {
 function stop() {
   GAME_STATE.running = false;
 }
+
+function startGame() {
+  start();
+  const startScreen = document.getElementById('startScreen');
+  if (startScreen) {
+    startScreen.style.display = 'none';
+  }
+}
+
+function bindStartControls() {
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', startGame);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Enter' && e.code !== 'Space') return;
+    const startScreen = document.getElementById('startScreen');
+    const visible = startScreen && startScreen.style.display !== 'none';
+    if (visible) {
+      e.preventDefault();
+      startGame();
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindStartControls);
+} else {
+  bindStartControls();
+}
