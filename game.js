@@ -37,8 +37,14 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
+function difficultyMultiplier(t) {
+  const { rampSeconds, maxMultiplier } = CONFIG.difficulty;
+  return Math.min(1 + t / rampSeconds, maxMultiplier);
+}
+
 function spawnObstacle() {
   const { obstacle, canvas: canvasCfg } = CONFIG;
+  const multiplier = difficultyMultiplier(GAME_STATE.time);
 
   const blockWidth = obstacle.width || canvasCfg.width;
   const blockHeight = obstacle.height;
@@ -65,7 +71,7 @@ function spawnObstacle() {
       gapY,
       gapH,
       botH,
-      speed: obstacle.baseFallSpeed,
+      speed: obstacle.baseFallSpeed * multiplier,
       type: 'laser',
       passed: false,
       counted: false,
@@ -101,7 +107,7 @@ function spawnObstacle() {
       gapCenterX,
       gapTopWidth: obstacle.gapTopWidth,
       gapBottomWidth: obstacle.gapBottomWidth,
-      speed: obstacle.baseFallSpeed,
+      speed: obstacle.baseFallSpeed * multiplier,
       type: 'narrow',
       passed: false,
       counted: false,
@@ -126,7 +132,7 @@ function spawnObstacle() {
     height: blockHeight,
     gapX,
     gapWidth,
-    speed: obstacle.baseFallSpeed,
+    speed: obstacle.baseFallSpeed * multiplier,
     type: 'block',
     passed: false,
     counted: false,
@@ -223,11 +229,14 @@ function update(dt) {
     GAME_STATE.theta += baseSpeed * dt;
   }
 
-  // Spawn obstacles on a fixed interval.
+  // Spawn obstacles on an interval that shortens as difficulty grows.
+  const multiplier = difficultyMultiplier(GAME_STATE.time);
+  const spawnInterval =
+    CONFIG.obstacle.spawnInterval / (1 + (multiplier - 1) * 0.5);
   GAME_STATE.spawnTimer -= dt * 1000;
   if (GAME_STATE.spawnTimer <= 0) {
     spawnObstacle();
-    GAME_STATE.spawnTimer = CONFIG.obstacle.spawnInterval;
+    GAME_STATE.spawnTimer = spawnInterval;
   }
 
   // Move obstacles downward, mark passed ones and drop those that left the screen.

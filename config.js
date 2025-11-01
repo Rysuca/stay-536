@@ -46,5 +46,7 @@ const CONFIG = {
   difficulty: {
     speedMultiplier: 1.15,
     spawnRateMultiplier: 0.9,
+    rampSeconds: 30,
+    maxMultiplier: 4,
   },
 };
