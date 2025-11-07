@@ -141,7 +141,15 @@ function spawnObstacle() {
 }
 
 function gameOver() {
-  GAME_STATE.running = false;
+  stop();
+  const finalScore = document.getElementById('finalScore');
+  if (finalScore) {
+    finalScore.textContent = GAME_STATE.score;
+  }
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  if (gameOverScreen) {
+    gameOverScreen.style.display = 'flex';
+  }
 }
 
 function sphereHitsObstacle(sx, sy, obstacle) {
@@ -442,13 +450,32 @@ function bindStartControls() {
     startBtn.addEventListener('click', startGame);
   }
 
+  const restartBtn = document.getElementById('restartBtn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      const gameOverScreen = document.getElementById('gameOverScreen');
+      if (gameOverScreen) {
+        gameOverScreen.style.display = 'none';
+      }
+      start();
+    });
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Enter' && e.code !== 'Space') return;
     const startScreen = document.getElementById('startScreen');
-    const visible = startScreen && startScreen.style.display !== 'none';
-    if (visible) {
+    const startVisible = startScreen && startScreen.style.display !== 'none';
+    if (startVisible) {
       e.preventDefault();
       startGame();
+      return;
+    }
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const overVisible = gameOverScreen && gameOverScreen.style.display !== 'none';
+    if (overVisible) {
+      e.preventDefault();
+      gameOverScreen.style.display = 'none';
+      start();
     }
   });
 }

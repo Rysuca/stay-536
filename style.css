@@ -30,7 +30,8 @@ body {
   z-index: 20;
 }
 
-#startScreen {
+#startScreen,
+#gameOverScreen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -38,6 +39,10 @@ body {
   text-align: center;
   font-family: 'Courier New', monospace;
   user-select: none;
+}
+
+#gameOverScreen {
+  display: none;
 }
 
 #startScreen .title {
@@ -84,6 +89,47 @@ body {
 }
 
 #startBtn:active {
+  transform: scale(0.97);
+}
+
+#gameOverScreen .title {
+  margin: 0;
+  font-size: 52px;
+  letter-spacing: 10px;
+  color: #ff2a6d;
+  text-shadow: 0 0 10px #ff2a6d, 0 0 30px #ff2a6d, 0 0 60px rgba(255, 42, 109, 0.7);
+}
+
+#gameOverScreen .gameOverScore {
+  margin: 24px 0 36px;
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: #c4fcef;
+  text-shadow: 0 0 8px rgba(196, 252, 239, 0.6);
+}
+
+#restartBtn {
+  padding: 14px 52px;
+  font-family: 'Courier New', monospace;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #05d9e8;
+  text-shadow: 0 0 8px #05d9e8;
+  background: transparent;
+  border: 2px solid #05d9e8;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(5, 217, 232, 0.6), inset 0 0 12px rgba(5, 217, 232, 0.4);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
+}
+
+#restartBtn:hover {
+  background: rgba(5, 217, 232, 0.15);
+  box-shadow: 0 0 26px rgba(5, 217, 232, 0.9), inset 0 0 26px rgba(5, 217, 232, 0.6);
+}
+
+#restartBtn:active {
   transform: scale(0.97);
 }
 
