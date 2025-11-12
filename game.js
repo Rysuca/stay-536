@@ -9,6 +9,7 @@ canvas.height = CONFIG.canvas.height;
 
 const GAME_STATE = {
   running: false,
+  dying: false,
   score: 0,
   theta: 0,
   time: 0,
@@ -146,7 +147,7 @@ function gameOver(cx, cy, color) {
     emitParticles(cx, cy, particles.burstCount, '#ffffff', particles.burstSpeed, particles.burstLife, particles.burstSize);
     emitParticles(cx, cy, Math.floor(particles.burstCount * 0.6), color, particles.burstSpeed * 0.7, particles.burstLife * 1.3, particles.burstSize * 1.4);
   }
-  stop();
+  GAME_STATE.dying = true;
   const finalScore = document.getElementById('finalScore');
   if (finalScore) {
     finalScore.textContent = GAME_STATE.score;
@@ -503,10 +504,16 @@ function gameLoop(timestamp) {
   if (GAME_STATE.running) {
     update(dt);
     draw();
-  } else if (GAME_STATE.particles.length > 0) {
+  } else if (GAME_STATE.dying) {
     // Keep animating the collision burst behind the game-over screen.
     updateParticles(dt);
     draw();
+    if (GAME_STATE.particles.length === 0) {
+      GAME_STATE.dying = false;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      return;
+    }
   }
 
   lastTime = timestamp;
@@ -517,6 +524,7 @@ function start() {
   if (GAME_STATE.running) return;
 
   GAME_STATE.running = true;
+  GAME_STATE.dying = false;
   GAME_STATE.score = 0;
   GAME_STATE.theta = 0;
   GAME_STATE.time = 0;
