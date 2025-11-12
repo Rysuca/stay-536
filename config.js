@@ -41,6 +41,18 @@ const CONFIG = {
     gapBottomWidth: 70,
     narrowSegments: 5,
     narrowColor: '#a8ff3e',
+    gapGlowColor: '#05d9e8',
+  },
+
+  particles: {
+    trailPerFrame: [2, 4],
+    trailSpeed: 28,
+    trailLife: 0.6,
+    trailSize: 3,
+    burstCount: 26,
+    burstSpeed: 260,
+    burstLife: 0.9,
+    burstSize: 4,
   },
 
   difficulty: {

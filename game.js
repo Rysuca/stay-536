@@ -140,7 +140,12 @@ function spawnObstacle() {
   });
 }
 
-function gameOver() {
+function gameOver(cx, cy, color) {
+  const { particles } = CONFIG;
+  if (typeof cx === 'number' && typeof cy === 'number' && color) {
+    emitParticles(cx, cy, particles.burstCount, '#ffffff', particles.burstSpeed, particles.burstLife, particles.burstSize);
+    emitParticles(cx, cy, Math.floor(particles.burstCount * 0.6), color, particles.burstSpeed * 0.7, particles.burstLife * 1.3, particles.burstSize * 1.4);
+  }
   stop();
   const finalScore = document.getElementById('finalScore');
   if (finalScore) {
@@ -211,18 +216,63 @@ function checkCollisions() {
   const sin = Math.sin(GAME_STATE.theta);
 
   const spheres = [
-    { x: xc + r * cos, y: yc + r * sin },
-    { x: xc - r * cos, y: yc - r * sin },
+    { x: xc + r * cos, y: yc + r * sin, color: CONFIG.sphere.redColor },
+    { x: xc - r * cos, y: yc - r * sin, color: CONFIG.sphere.blueColor },
   ];
 
   for (const ob of GAME_STATE.obstacles) {
     for (const sphere of spheres) {
       if (sphereHitsObstacle(sphere.x, sphere.y, ob)) {
-        gameOver();
+        gameOver(sphere.x, sphere.y, sphere.color);
         return;
       }
     }
   }
+}
+
+function emitParticles(x, y, count, color, speed, life, size) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const v = speed * (0.4 + Math.random() * 0.8);
+    GAME_STATE.particles.push({
+      x,
+      y,
+      vx: Math.cos(angle) * v,
+      vy: Math.sin(angle) * v,
+      life,
+      size: size * (0.6 + Math.random() * 0.8),
+      color,
+    });
+  }
+}
+
+function updateParticles(dt) {
+  const list = GAME_STATE.particles;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const p = list[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+    if (p.life <= 0) {
+      list.splice(i, 1);
+    }
+  }
+}
+
+function drawParticles() {
+  const list = GAME_STATE.particles;
+  if (list.length === 0) return;
+
+  ctx.save();
+  for (const p of list) {
+    ctx.globalAlpha = Math.max(p.life, 0);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function update(dt) {
@@ -268,7 +318,22 @@ function update(dt) {
     }
   }
 
+  // Emit glowing particle trails from both spheres.
+  const { orbit, sphere, particles: pcfg } = CONFIG;
+  const cos = Math.cos(GAME_STATE.theta);
+  const sin = Math.sin(GAME_STATE.theta);
+  const positions = [
+    { x: orbit.centerX + orbit.radius * cos, y: orbit.centerY + orbit.radius * sin, color: sphere.redColor },
+    { x: orbit.centerX - orbit.radius * cos, y: orbit.centerY - orbit.radius * sin, color: sphere.blueColor },
+  ];
+  const [minTrail, maxTrail] = pcfg.trailPerFrame;
+  for (const pos of positions) {
+    const count = minTrail + Math.floor(Math.random() * (maxTrail - minTrail + 1));
+    emitParticles(pos.x, pos.y, count, pos.color, pcfg.trailSpeed, pcfg.trailLife, pcfg.trailSize);
+  }
+
   checkCollisions();
+  updateParticles(dt);
 }
 
 function drawOrbit() {
@@ -375,6 +440,28 @@ function drawObstacles() {
     for (const seg of ob.segments) {
       ctx.fillRect(ob.x + seg.x, ob.y, seg.w, ob.height);
     }
+
+    // Soft neon glow along the center of the gap so the safe lane reads clearly.
+    const gapHalf = ob.gapWidth / 2;
+    const gapLeft = ob.gapX - gapHalf;
+    const glowColor = CONFIG.obstacle.gapGlowColor;
+    ctx.save();
+    const glow = ctx.createLinearGradient(gapLeft, 0, ob.gapX + gapHalf, 0);
+    glow.addColorStop(0, 'rgba(5, 217, 232, 0)');
+    glow.addColorStop(0.5, 'rgba(5, 217, 232, 0.18)');
+    glow.addColorStop(1, 'rgba(5, 217, 232, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(gapLeft, ob.y, ob.gapWidth, ob.height);
+    ctx.strokeStyle = glowColor;
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = glowColor;
+    ctx.beginPath();
+    ctx.moveTo(ob.gapX, ob.y);
+    ctx.lineTo(ob.gapX, ob.y + ob.height);
+    ctx.stroke();
+    ctx.restore();
   }
 
   ctx.restore();
@@ -403,6 +490,7 @@ function draw() {
   drawOrbit();
   drawDuo();
   drawObstacles();
+  drawParticles();
   updateHUD();
 }
 
@@ -414,6 +502,10 @@ function gameLoop(timestamp) {
 
   if (GAME_STATE.running) {
     update(dt);
+    draw();
+  } else if (GAME_STATE.particles.length > 0) {
+    // Keep animating the collision burst behind the game-over screen.
+    updateParticles(dt);
     draw();
   }
 
