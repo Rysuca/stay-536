@@ -403,6 +403,9 @@ function draw() {
   drawScore();
 }
 
+let lastTime = 0;
+let rafId = null;
+
 function gameLoop(timestamp) {
   const dt = Math.min((timestamp - lastTime) / 1000 || 0, 0.05);
 
@@ -412,10 +415,8 @@ function gameLoop(timestamp) {
   }
 
   lastTime = timestamp;
-  requestAnimationFrame(gameLoop);
+  rafId = requestAnimationFrame(gameLoop);
 }
-
-let lastTime = 0;
 
 function start() {
   if (GAME_STATE.running) return;
@@ -428,12 +429,28 @@ function start() {
   GAME_STATE.particles = [];
   GAME_STATE.spawnTimer = 0;
 
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  if (gameOverScreen) {
+    gameOverScreen.style.display = 'none';
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+
   lastTime = performance.now();
-  requestAnimationFrame(gameLoop);
+  if (rafId == null) {
+    rafId = requestAnimationFrame(gameLoop);
+  }
 }
 
 function stop() {
   GAME_STATE.running = false;
+  if (rafId != null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
 }
 
 function startGame() {
@@ -452,13 +469,7 @@ function bindStartControls() {
 
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) {
-    restartBtn.addEventListener('click', () => {
-      const gameOverScreen = document.getElementById('gameOverScreen');
-      if (gameOverScreen) {
-        gameOverScreen.style.display = 'none';
-      }
-      start();
-    });
+    restartBtn.addEventListener('click', start);
   }
 
   window.addEventListener('keydown', (e) => {
@@ -474,7 +485,6 @@ function bindStartControls() {
     const overVisible = gameOverScreen && gameOverScreen.style.display !== 'none';
     if (overVisible) {
       e.preventDefault();
-      gameOverScreen.style.display = 'none';
       start();
     }
   });
