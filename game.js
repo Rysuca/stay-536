@@ -380,16 +380,19 @@ function drawObstacles() {
   ctx.restore();
 }
 
-function drawScore() {
-  ctx.save();
-  ctx.font = 'bold 24px "Courier New", monospace';
-  ctx.fillStyle = '#05d9e8';
-  ctx.shadowBlur = 12;
-  ctx.shadowColor = '#05d9e8';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(`SCORE: ${GAME_STATE.score}`, 16, 16);
-  ctx.restore();
+function updateHUD() {
+  const scoreEl = document.getElementById('hudScore');
+  if (scoreEl) {
+    scoreEl.textContent = GAME_STATE.score;
+  }
+
+  const timeEl = document.getElementById('hudTime');
+  if (timeEl) {
+    const total = Math.floor(GAME_STATE.time);
+    const mm = String(Math.floor(total / 60)).padStart(2, '0');
+    const ss = String(total % 60).padStart(2, '0');
+    timeEl.textContent = `${mm}:${ss}`;
+  }
 }
 
 function draw() {
@@ -400,7 +403,7 @@ function draw() {
   drawOrbit();
   drawDuo();
   drawObstacles();
-  drawScore();
+  updateHUD();
 }
 
 let lastTime = 0;
