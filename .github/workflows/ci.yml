@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check syntax of game.js
+        run: node --check game.js
+
+      - name: Check syntax of config.js
+        run: node --check config.js
+
+      - name: Check syntax of logic.js
+        run: node --check logic.js
+
+      - name: Check syntax of test/logic.test.js
+        run: node --check test/logic.test.js
+
+      - name: Verify index.html exists
+        run: test -f index.html && echo "OK"
