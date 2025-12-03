@@ -20,11 +20,14 @@ const CONFIG = {
   },
 
   rotation: {
-    baseSpeed: 0.03,
+    // rad per second (applied as baseSpeed * dt, dt in seconds)
+    baseSpeed: 2.5,
   },
 
   obstacle: {
-    baseFallSpeed: 2,
+    // px per second (applied as speed * dt, dt in seconds)
+    baseFallSpeed: 150,
+    // ms between spawns; ~180px spacing between obstacles at base fall speed
     spawnInterval: 1200,
     radius: 8,
     color: '#c4fcef',
