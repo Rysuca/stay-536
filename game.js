@@ -16,7 +16,37 @@ const GAME_STATE = {
   obstacles: [],
   particles: [],
   spawnTimer: 0,
+  colors: null,
 };
+
+let currentThemeId = getSelectedTheme();
+
+function hexToRgba(hex, alpha) {
+  const value = hex.replace('#', '');
+  const r = parseInt(value.substring(0, 2), 16);
+  const g = parseInt(value.substring(2, 4), 16);
+  const b = parseInt(value.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function applyTheme(themeId) {
+  currentThemeId = themeId;
+  const theme = CONFIG.themes[themeId] || CONFIG.themes[CONFIG.defaultTheme];
+  GAME_STATE.colors = {
+    sphereColors: {
+      red: theme.sphereColors.red,
+      blue: theme.sphereColors.blue,
+    },
+    orbitColor: theme.orbitColor,
+    obstacleColor: theme.obstacleColor,
+    laserColor: theme.laserColor,
+    narrowColor: theme.narrowColor,
+    gapGlowColor: theme.gapGlowColor,
+    background: theme.background,
+  };
+}
+
+applyTheme(currentThemeId);
 
 const keys = {
   ArrowLeft: false,
@@ -218,8 +248,8 @@ function checkCollisions() {
   const sin = Math.sin(GAME_STATE.theta);
 
   const spheres = [
-    { x: xc + r * cos, y: yc + r * sin, color: CONFIG.sphere.redColor },
-    { x: xc - r * cos, y: yc - r * sin, color: CONFIG.sphere.blueColor },
+    { x: xc + r * cos, y: yc + r * sin, color: GAME_STATE.colors.sphereColors.red },
+    { x: xc - r * cos, y: yc - r * sin, color: GAME_STATE.colors.sphereColors.blue },
   ];
 
   for (const ob of GAME_STATE.obstacles) {
@@ -325,8 +355,8 @@ function update(dt) {
   const cos = Math.cos(GAME_STATE.theta);
   const sin = Math.sin(GAME_STATE.theta);
   const positions = [
-    { x: orbit.centerX + orbit.radius * cos, y: orbit.centerY + orbit.radius * sin, color: sphere.redColor },
-    { x: orbit.centerX - orbit.radius * cos, y: orbit.centerY - orbit.radius * sin, color: sphere.blueColor },
+    { x: orbit.centerX + orbit.radius * cos, y: orbit.centerY + orbit.radius * sin, color: GAME_STATE.colors.sphereColors.red },
+    { x: orbit.centerX - orbit.radius * cos, y: orbit.centerY - orbit.radius * sin, color: GAME_STATE.colors.sphereColors.blue },
   ];
   const [minTrail, maxTrail] = pcfg.trailPerFrame;
   for (const pos of positions) {
@@ -342,10 +372,10 @@ function drawOrbit() {
   const { orbit } = CONFIG;
 
   ctx.save();
-  ctx.strokeStyle = 'rgba(5, 217, 232, 0.35)';
+  ctx.strokeStyle = hexToRgba(GAME_STATE.colors.orbitColor, 0.35);
   ctx.lineWidth = 1;
   ctx.shadowBlur = 10;
-  ctx.shadowColor = CONFIG.sphere.blueColor;
+  ctx.shadowColor = GAME_STATE.colors.orbitColor;
   ctx.beginPath();
   ctx.arc(orbit.centerX, orbit.centerY, orbit.radius, 0, Math.PI * 2);
   ctx.stroke();
@@ -377,22 +407,22 @@ function drawDuo() {
 
   // Center of mass.
   ctx.save();
-  ctx.fillStyle = 'rgba(196, 252, 239, 0.8)';
+  ctx.fillStyle = hexToRgba(GAME_STATE.colors.orbitColor, 0.8);
   ctx.shadowBlur = 8;
-  ctx.shadowColor = '#c4fcef';
+  ctx.shadowColor = GAME_STATE.colors.orbitColor;
   ctx.beginPath();
   ctx.arc(xc, yc, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  drawSphere(xc + r * cos, yc + r * sin, sphere.redColor);
-  drawSphere(xc - r * cos, yc - r * sin, sphere.blueColor);
+  drawSphere(xc + r * cos, yc + r * sin, GAME_STATE.colors.sphereColors.red);
+  drawSphere(xc - r * cos, yc - r * sin, GAME_STATE.colors.sphereColors.blue);
 }
 
 function drawObstacles() {
-  const color = CONFIG.obstacle.color;
-  const laserColor = CONFIG.obstacle.laserColor;
-  const narrowColor = CONFIG.obstacle.narrowColor;
+  const color = GAME_STATE.colors.obstacleColor;
+  const laserColor = GAME_STATE.colors.laserColor;
+  const narrowColor = GAME_STATE.colors.narrowColor;
 
   ctx.save();
   ctx.shadowBlur = 14;
@@ -446,12 +476,12 @@ function drawObstacles() {
     // Soft neon glow along the center of the gap so the safe lane reads clearly.
     const gapHalf = ob.gapWidth / 2;
     const gapLeft = ob.gapX - gapHalf;
-    const glowColor = CONFIG.obstacle.gapGlowColor;
+    const glowColor = GAME_STATE.colors.gapGlowColor;
     ctx.save();
     const glow = ctx.createLinearGradient(gapLeft, 0, ob.gapX + gapHalf, 0);
-    glow.addColorStop(0, 'rgba(5, 217, 232, 0)');
-    glow.addColorStop(0.5, 'rgba(5, 217, 232, 0.18)');
-    glow.addColorStop(1, 'rgba(5, 217, 232, 0)');
+    glow.addColorStop(0, hexToRgba(GAME_STATE.colors.gapGlowColor, 0));
+    glow.addColorStop(0.5, hexToRgba(GAME_STATE.colors.gapGlowColor, 0.18));
+    glow.addColorStop(1, hexToRgba(GAME_STATE.colors.gapGlowColor, 0));
     ctx.fillStyle = glow;
     ctx.fillRect(gapLeft, ob.y, ob.gapWidth, ob.height);
     ctx.strokeStyle = glowColor;
@@ -486,7 +516,7 @@ function updateHUD() {
 
 function draw() {
   // Translucent fill instead of a full clear leaves a fading trail behind.
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillStyle = hexToRgba(GAME_STATE.colors.background, 0.1);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   drawOrbit();
@@ -539,9 +569,9 @@ function start() {
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#000000';
+  ctx.fillStyle = GAME_STATE.colors.background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillStyle = hexToRgba(GAME_STATE.colors.background, 0.1);
 
   lastTime = performance.now();
   if (rafId == null) {
