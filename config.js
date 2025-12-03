@@ -107,3 +107,28 @@ const CONFIG = {
     },
   },
 };
+
+const THEME_STORAGE_KEY = 'od-theme';
+
+function getSelectedTheme() {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored && CONFIG.themes[stored]) {
+      return stored;
+    }
+  } catch (e) {
+    // localStorage unavailable — fall through to default
+  }
+  return CONFIG.defaultTheme;
+}
+
+function setSelectedTheme(themeId) {
+  if (!themeId || !CONFIG.themes[themeId]) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, themeId);
+  } catch (e) {
+    // localStorage unavailable — ignore
+  }
+}
