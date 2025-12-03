@@ -147,6 +147,7 @@ function gameOver(cx, cy, color) {
     emitParticles(cx, cy, particles.burstCount, '#ffffff', particles.burstSpeed, particles.burstLife, particles.burstSize);
     emitParticles(cx, cy, Math.floor(particles.burstCount * 0.6), color, particles.burstSpeed * 0.7, particles.burstLife * 1.3, particles.burstSize * 1.4);
   }
+  GAME_STATE.running = false;
   GAME_STATE.dying = true;
   const finalScore = document.getElementById('finalScore');
   if (finalScore) {
