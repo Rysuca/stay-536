@@ -113,10 +113,14 @@ const CONFIG = {
 
 const THEME_STORAGE_KEY = 'od-theme';
 
+function isValidThemeId(themeId, themes) {
+  return !!themeId && !!themes && Object.prototype.hasOwnProperty.call(themes, themeId);
+}
+
 function getSelectedTheme() {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored && CONFIG.themes[stored]) {
+    if (isValidThemeId(stored, CONFIG.themes)) {
       return stored;
     }
   } catch (e) {
@@ -126,7 +130,7 @@ function getSelectedTheme() {
 }
 
 function setSelectedTheme(themeId) {
-  if (!themeId || !CONFIG.themes[themeId]) {
+  if (!isValidThemeId(themeId, CONFIG.themes)) {
     return;
   }
   try {
@@ -134,4 +138,8 @@ function setSelectedTheme(themeId) {
   } catch (e) {
     // localStorage unavailable — ignore
   }
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { CONFIG, THEME_STORAGE_KEY, isValidThemeId, getSelectedTheme, setSelectedTheme };
 }
