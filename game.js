@@ -48,6 +48,34 @@ function applyTheme(themeId) {
 
 applyTheme(currentThemeId);
 
+function buildThemePicker() {
+  const container = document.getElementById('themeButtons');
+  if (!container) return;
+
+  for (const themeId of Object.keys(CONFIG.themes)) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'themeBtn';
+    btn.dataset.theme = themeId;
+    btn.textContent = CONFIG.themes[themeId].name;
+    btn.addEventListener('click', () => {
+      setSelectedTheme(themeId);
+      applyTheme(themeId);
+      highlightThemeButton(themeId);
+    });
+    container.appendChild(btn);
+  }
+
+  highlightThemeButton(currentThemeId);
+}
+
+function highlightThemeButton(themeId) {
+  const buttons = document.querySelectorAll('#themeButtons .themeBtn');
+  for (const btn of buttons) {
+    btn.classList.toggle('active', btn.dataset.theme === themeId);
+  }
+}
+
 const keys = {
   ArrowLeft: false,
   ArrowRight: false,
@@ -625,7 +653,11 @@ function bindStartControls() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bindStartControls);
+  document.addEventListener('DOMContentLoaded', () => {
+    bindStartControls();
+    buildThemePicker();
+  });
 } else {
   bindStartControls();
+  buildThemePicker();
 }
