@@ -12,11 +12,18 @@ const {
   sphereHitsNarrow,
   sphereHitsObstacle,
   difficultyMultiplier,
+  spawnIntervalForTime,
   obstaclePassed,
 } = require('../logic.js');
 
 const CONFIG_LIKE = {
-  difficulty: { rampSeconds: 30, maxMultiplier: 4 },
+  obstacle: { spawnInterval: 1200, minSpawnInterval: 0.85 },
+  difficulty: {
+    rampSeconds: 45,
+    maxMultiplier: 3,
+    speedMultiplier: 1.15,
+    spawnRateMultiplier: 0.9,
+  },
 };
 
 test('duoPositions: theta=0 puts red on the right and blue on the left', () => {
@@ -168,12 +175,29 @@ test('difficultyMultiplier: t=0 gives 1', () => {
   assert.strictEqual(difficultyMultiplier(0, CONFIG_LIKE), 1);
 });
 
-test('difficultyMultiplier: t=30 gives 2', () => {
-  assert.strictEqual(difficultyMultiplier(30, CONFIG_LIKE), 2);
+test('difficultyMultiplier: grows by speedMultiplier each ramp window', () => {
+  assert.ok(Math.abs(difficultyMultiplier(45, CONFIG_LIKE) - 1.15) < 1e-9);
+  assert.ok(Math.abs(difficultyMultiplier(90, CONFIG_LIKE) - 1.15 * 1.15) < 1e-9);
 });
 
-test('difficultyMultiplier: t=300 is capped at maxMultiplier', () => {
-  assert.strictEqual(difficultyMultiplier(300, CONFIG_LIKE), CONFIG_LIKE.difficulty.maxMultiplier);
+test('difficultyMultiplier: past the ramp it is capped at maxMultiplier', () => {
+  assert.strictEqual(difficultyMultiplier(400, CONFIG_LIKE), CONFIG_LIKE.difficulty.maxMultiplier);
+});
+
+test('spawnIntervalForTime: starts at the base interval', () => {
+  assert.strictEqual(spawnIntervalForTime(0, CONFIG_LIKE), CONFIG_LIKE.obstacle.spawnInterval);
+});
+
+test('spawnIntervalForTime: shrinks by spawnRateMultiplier each ramp window', () => {
+  assert.ok(Math.abs(spawnIntervalForTime(45, CONFIG_LIKE) - 1080) < 1e-9);
+  assert.ok(Math.abs(spawnIntervalForTime(90, CONFIG_LIKE) - 972) < 1e-9);
+});
+
+test('spawnIntervalForTime: never drops below minSpawnInterval', () => {
+  assert.strictEqual(
+    spawnIntervalForTime(600, CONFIG_LIKE),
+    CONFIG_LIKE.obstacle.minSpawnInterval * 1000
+  );
 });
 
 test('obstaclePassed: bottom edge below threshold counts as passed', () => {
