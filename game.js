@@ -21,6 +21,8 @@ const GAME_STATE = {
 
 let currentThemeId = getSelectedTheme();
 
+let lastSummaryLog = 0;
+
 function hexToRgba(hex, alpha) {
   const value = hex.replace('#', '');
   const r = parseInt(value.substring(0, 2), 16);
@@ -108,6 +110,33 @@ function spawnIntervalForTime(t) {
   return Math.max(minMs, spawnInterval * Math.pow(spawnRateMultiplier, t / rampSeconds));
 }
 
+function logSpawn(ob) {
+  const summary = {
+    type: ob.type,
+    x: ob.x,
+    y: ob.y,
+    width: ob.width,
+    height: ob.height,
+    speed: ob.speed,
+    baseSpeed: ob.baseSpeed,
+    time: GAME_STATE.time,
+  };
+  if (ob.type === 'laser') {
+    summary.gapY = ob.gapY;
+    summary.gapH = ob.gapH;
+    summary.topH = ob.topH;
+    summary.botH = ob.botH;
+  } else if (ob.type === 'narrow') {
+    summary.gapCenterX = ob.gapCenterX;
+    summary.gapTopWidth = ob.gapTopWidth;
+    summary.gapBottomWidth = ob.gapBottomWidth;
+  } else {
+    summary.gapX = ob.gapX;
+    summary.gapWidth = ob.gapWidth;
+  }
+  console.log('[SPAWN]', summary);
+}
+
 function spawnObstacle() {
   const { obstacle, canvas: canvasCfg } = CONFIG;
 
@@ -128,7 +157,7 @@ function spawnObstacle() {
     const gapY = topH;
     const laserHeight = gapY + gapH + botH;
 
-    GAME_STATE.obstacles.push({
+    const spawned = {
       x: 0,
       y: -laserHeight,
       width: blockWidth,
@@ -142,7 +171,9 @@ function spawnObstacle() {
       type: 'laser',
       passed: false,
       counted: false,
-    });
+    };
+    GAME_STATE.obstacles.push(spawned);
+    if (CONFIG.DEBUG) logSpawn(spawned);
     return;
   }
 
@@ -167,7 +198,7 @@ function spawnObstacle() {
       );
     }
 
-    GAME_STATE.obstacles.push({
+    const spawned = {
       x: 0,
       y: -blockHeight,
       width: blockWidth,
@@ -181,7 +212,9 @@ function spawnObstacle() {
       passed: false,
       counted: false,
       rects,
-    });
+    };
+    GAME_STATE.obstacles.push(spawned);
+    if (CONFIG.DEBUG) logSpawn(spawned);
     return;
   }
 
@@ -197,7 +230,7 @@ function spawnObstacle() {
     { x: gapX + gapWidth / 2, w: blockWidth - gapX - gapWidth / 2 },
   ];
 
-  GAME_STATE.obstacles.push({
+  const spawned = {
     x: 0,
     y: -blockHeight,
     width: blockWidth,
@@ -210,14 +243,34 @@ function spawnObstacle() {
     passed: false,
     counted: false,
     segments,
-  });
+  };
+  GAME_STATE.obstacles.push(spawned);
+  if (CONFIG.DEBUG) logSpawn(spawned);
 }
 
-function gameOver(cx, cy, color) {
-  const { particles } = CONFIG;
+function gameOver(cx, cy, color, obstacle) {
+  const { particles, orbit } = CONFIG;
   if (typeof cx === 'number' && typeof cy === 'number' && color) {
     emitParticles(cx, cy, particles.burstCount, '#ffffff', particles.burstSpeed, particles.burstLife, particles.burstSize);
     emitParticles(cx, cy, Math.floor(particles.burstCount * 0.6), color, particles.burstSpeed * 0.7, particles.burstLife * 1.3, particles.burstSize * 1.4);
+  }
+  if (CONFIG.DEBUG) {
+    const cos = Math.cos(GAME_STATE.theta);
+    const sin = Math.sin(GAME_STATE.theta);
+    const sphere1 = { x: orbit.centerX + orbit.radius * cos, y: orbit.centerY + orbit.radius * sin };
+    const sphere2 = { x: orbit.centerX - orbit.radius * cos, y: orbit.centerY - orbit.radius * sin };
+    console.warn('[COLLISION]', {
+      time: GAME_STATE.time,
+      score: GAME_STATE.score,
+      obstacleType: obstacle ? obstacle.type : null,
+      obstacleX: obstacle ? obstacle.x : null,
+      obstacleY: obstacle ? obstacle.y : null,
+      gapX: obstacle ? obstacle.gapX : null,
+      gapWidth: obstacle ? obstacle.gapWidth : null,
+      sphere1,
+      sphere2,
+      theta: GAME_STATE.theta,
+    });
   }
   GAME_STATE.running = false;
   GAME_STATE.dying = true;
@@ -297,7 +350,7 @@ function checkCollisions() {
   for (const ob of GAME_STATE.obstacles) {
     for (const sphere of spheres) {
       if (sphereHitsObstacle(sphere.x, sphere.y, ob)) {
-        gameOver(sphere.x, sphere.y, sphere.color);
+        gameOver(sphere.x, sphere.y, sphere.color, ob);
         return;
       }
     }
@@ -370,6 +423,20 @@ function update(dt) {
   if (GAME_STATE.spawnTimer <= 0) {
     spawnObstacle();
     GAME_STATE.spawnTimer = spawnInterval;
+  }
+
+  if (CONFIG.DEBUG && GAME_STATE.time - lastSummaryLog >= 1) {
+    lastSummaryLog = GAME_STATE.time;
+    console.log('[STATE]', {
+      time: GAME_STATE.time,
+      obstaclesCount: GAME_STATE.obstacles.length,
+      rotationSpeed,
+      difficultyMultiplier: multiplier,
+      spawnInterval,
+    });
+    console.table(
+      GAME_STATE.obstacles.map((ob) => ({ type: ob.type, y: ob.y, speed: ob.speed })),
+    );
   }
 
   // Move obstacles downward; rescale every active obstacle's speed from the
@@ -607,6 +674,23 @@ function start() {
   GAME_STATE.obstacles = [];
   GAME_STATE.particles = [];
   GAME_STATE.spawnTimer = 0;
+
+  if (CONFIG.DEBUG) {
+    console.log('[GAME] session start', {
+      width: canvas.width,
+      height: canvas.height,
+      xc: CONFIG.orbit.centerX,
+      yc: CONFIG.orbit.centerY,
+      orbitRadius: CONFIG.orbit.radius,
+      sphereRadius: CONFIG.sphere.radius,
+      baseFallSpeed: CONFIG.obstacle.baseFallSpeed,
+      baseSpeed: CONFIG.rotation.baseSpeed,
+      spawnInterval: CONFIG.obstacle.spawnInterval,
+      rampSeconds: CONFIG.difficulty.rampSeconds,
+      maxMultiplier: CONFIG.difficulty.maxMultiplier,
+      theme: currentThemeId,
+    });
+  }
 
   const gameOverScreen = document.getElementById('gameOverScreen');
   if (gameOverScreen) {

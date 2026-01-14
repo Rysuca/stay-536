@@ -2,6 +2,8 @@
 // Tweak these constants to balance difficulty and visuals.
 
 const CONFIG = {
+  DEBUG: true,
+
   canvas: {
     width: 900,
     height: 600,
