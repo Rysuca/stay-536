@@ -97,17 +97,24 @@ window.addEventListener('keyup', (e) => {
 });
 
 function difficultyMultiplier(t) {
-  const { rampSeconds, maxMultiplier } = CONFIG.difficulty;
-  return Math.min(1 + t / rampSeconds, maxMultiplier);
+  const { rampSeconds, maxMultiplier, speedMultiplier } = CONFIG.difficulty;
+  return Math.min(Math.pow(speedMultiplier, t / rampSeconds), maxMultiplier);
+}
+
+function spawnIntervalForTime(t) {
+  const { spawnInterval, minSpawnInterval } = CONFIG.obstacle;
+  const { rampSeconds, spawnRateMultiplier } = CONFIG.difficulty;
+  const minMs = minSpawnInterval * 1000;
+  return Math.max(minMs, spawnInterval * Math.pow(spawnRateMultiplier, t / rampSeconds));
 }
 
 function spawnObstacle() {
   const { obstacle, canvas: canvasCfg } = CONFIG;
-  const multiplier = difficultyMultiplier(GAME_STATE.time);
 
   const blockWidth = obstacle.width || canvasCfg.width;
   const blockHeight = obstacle.height;
   const gapWidth = obstacle.gapWidth;
+  const baseSpeed = obstacle.baseFallSpeed;
 
   const roll = Math.random();
   const laserThreshold = obstacle.laserChance;
@@ -130,7 +137,8 @@ function spawnObstacle() {
       gapY,
       gapH,
       botH,
-      speed: obstacle.baseFallSpeed * multiplier,
+      baseSpeed,
+      speed: baseSpeed,
       type: 'laser',
       passed: false,
       counted: false,
@@ -167,7 +175,8 @@ function spawnObstacle() {
       gapCenterX,
       gapTopWidth: obstacle.gapTopWidth,
       gapBottomWidth: obstacle.gapBottomWidth,
-      speed: obstacle.baseFallSpeed * multiplier,
+      baseSpeed,
+      speed: baseSpeed,
       type: 'narrow',
       passed: false,
       counted: false,
@@ -195,7 +204,8 @@ function spawnObstacle() {
     height: blockHeight,
     gapX,
     gapWidth,
-    speed: obstacle.baseFallSpeed * multiplier,
+    baseSpeed,
+    speed: baseSpeed,
     type: 'block',
     passed: false,
     counted: false,
@@ -344,27 +354,30 @@ function update(dt) {
   GAME_STATE.time += dt;
 
   const { baseSpeed } = CONFIG.rotation;
+  const multiplier = difficultyMultiplier(GAME_STATE.time);
+  const rotationSpeed = baseSpeed * (1 + (multiplier - 1) * 0.3);
   if (keys.ArrowLeft || keys.KeyA) {
-    GAME_STATE.theta -= baseSpeed * dt;
+    GAME_STATE.theta -= rotationSpeed * dt;
   }
   if (keys.ArrowRight || keys.KeyD) {
-    GAME_STATE.theta += baseSpeed * dt;
+    GAME_STATE.theta += rotationSpeed * dt;
   }
 
-  // Spawn obstacles on an interval that shortens as difficulty grows.
-  const multiplier = difficultyMultiplier(GAME_STATE.time);
-  const spawnInterval =
-    CONFIG.obstacle.spawnInterval / (1 + (multiplier - 1) * 0.5);
+  // Spawn obstacles on an interval that shortens as difficulty grows, never
+  // below minSpawnInterval so consecutive gaps stay physically reachable.
+  const spawnInterval = spawnIntervalForTime(GAME_STATE.time);
   GAME_STATE.spawnTimer -= dt * 1000;
   if (GAME_STATE.spawnTimer <= 0) {
     spawnObstacle();
     GAME_STATE.spawnTimer = spawnInterval;
   }
 
-  // Move obstacles downward, mark passed ones and drop those that left the screen.
+  // Move obstacles downward; rescale every active obstacle's speed from the
+  // current difficulty so old blocks accelerate together with newly spawned ones.
   const passLine = canvas.height / 2 + CONFIG.orbit.radius + CONFIG.sphere.radius;
   for (let i = GAME_STATE.obstacles.length - 1; i >= 0; i--) {
     const ob = GAME_STATE.obstacles[i];
+    ob.speed = ob.baseSpeed * multiplier;
     ob.y += ob.speed * dt;
     if (!ob.passed && ob.y > passLine) {
       ob.passed = true;

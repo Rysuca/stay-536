@@ -21,14 +21,16 @@ const CONFIG = {
 
   rotation: {
     // rad per second (applied as baseSpeed * dt, dt in seconds)
-    baseSpeed: 2.5,
+    baseSpeed: 1.8,
   },
 
   obstacle: {
     // px per second (applied as speed * dt, dt in seconds)
-    baseFallSpeed: 150,
-    // ms between spawns; ~180px spacing between obstacles at base fall speed
+    baseFallSpeed: 105,
+    // ms between spawns; ~126px spacing between obstacles at base fall speed
     spawnInterval: 1200,
+    // min seconds between spawns; keeps gaps playable as difficulty ramps up
+    minSpawnInterval: 0.85,
     radius: 8,
     color: '#c4fcef',
     width: 900,
@@ -69,8 +71,8 @@ const CONFIG = {
   difficulty: {
     speedMultiplier: 1.15,
     spawnRateMultiplier: 0.9,
-    rampSeconds: 30,
-    maxMultiplier: 4,
+    rampSeconds: 45,
+    maxMultiplier: 3,
   },
 
   defaultTheme: 'neon-classic',

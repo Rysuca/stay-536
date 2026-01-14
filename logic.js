@@ -82,8 +82,15 @@ function sphereHitsObstacle(sx, sy, radius, obstacle) {
 }
 
 function difficultyMultiplier(t, config) {
-  const { rampSeconds, maxMultiplier } = config.difficulty;
-  return Math.min(1 + t / rampSeconds, maxMultiplier);
+  const { rampSeconds, maxMultiplier, speedMultiplier } = config.difficulty;
+  return Math.min(Math.pow(speedMultiplier, t / rampSeconds), maxMultiplier);
+}
+
+function spawnIntervalForTime(t, config) {
+  const { spawnInterval, minSpawnInterval } = config.obstacle;
+  const { rampSeconds, spawnRateMultiplier } = config.difficulty;
+  const minMs = minSpawnInterval * 1000;
+  return Math.max(minMs, spawnInterval * Math.pow(spawnRateMultiplier, t / rampSeconds));
 }
 
 function obstaclePassed(obstacle, thresholdY) {
@@ -98,5 +105,6 @@ module.exports = {
   sphereHitsNarrow,
   sphereHitsObstacle,
   difficultyMultiplier,
+  spawnIntervalForTime,
   obstaclePassed,
 };
