@@ -141,7 +141,8 @@ function spawnObstacle() {
   // With a set chance, spawn a narrowing corridor: the gap shrinks top to bottom.
   if (roll < narrowThreshold) {
     const gapCenterX =
-      obstacle.gapTopWidth / 2 + Math.random() * (blockWidth - obstacle.gapTopWidth);
+      obstacle.narrowCenterMinX +
+      Math.random() * (obstacle.narrowCenterMaxX - obstacle.narrowCenterMinX);
     const segCount = obstacle.narrowSegments || 5;
     const segH = blockHeight / segCount;
     const topHalf = obstacle.gapTopWidth / 2;
@@ -175,8 +176,11 @@ function spawnObstacle() {
     return;
   }
 
-  // Randomly position the single vertical gap, keeping it fully on-screen.
-  const gapX = gapWidth / 2 + Math.random() * (blockWidth - gapWidth);
+  // Randomly position the single vertical gap so it always covers the orbit
+  // center, keeping it reachable by the duo at any rotation.
+  const gapX =
+    obstacle.blockGapMinX +
+    Math.random() * (obstacle.blockGapMaxX - obstacle.blockGapMinX);
 
   // Two solid segments: left and right of the gap.
   const segments = [
