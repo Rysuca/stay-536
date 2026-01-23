@@ -685,13 +685,50 @@ function gameLoop(timestamp) {
 function pauseGame() {
   if (!GAME_STATE.running || GAME_STATE.dying || GAME_STATE.paused) return;
   GAME_STATE.paused = true;
+  const pauseScreen = document.getElementById('pauseScreen');
+  if (pauseScreen) {
+    pauseScreen.style.display = 'flex';
+  }
 }
 
 function resumeGame() {
   if (!GAME_STATE.paused) return;
   GAME_STATE.paused = false;
+  const pauseScreen = document.getElementById('pauseScreen');
+  if (pauseScreen) {
+    pauseScreen.style.display = 'none';
+  }
   // Reset the frame timestamp so the next dt after a pause is not a huge jump.
   lastTime = performance.now();
+}
+
+function togglePause() {
+  const startScreen = document.getElementById('startScreen');
+  const startVisible = startScreen && startScreen.style.display !== 'none';
+  if (startVisible) return;
+
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const overVisible = gameOverScreen && gameOverScreen.style.display !== 'none';
+  if (overVisible) return;
+
+  if (GAME_STATE.paused) {
+    resumeGame();
+  } else if (GAME_STATE.running && !GAME_STATE.dying) {
+    pauseGame();
+  }
+}
+
+function bindPauseControls() {
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyP' && e.code !== 'Escape') return;
+    e.preventDefault();
+    togglePause();
+  });
+
+  const pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', togglePause);
+  }
 }
 
 function start() {
@@ -792,9 +829,11 @@ function bindStartControls() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     bindStartControls();
+    bindPauseControls();
     buildThemePicker();
   });
 } else {
   bindStartControls();
+  bindPauseControls();
   buildThemePicker();
 }
