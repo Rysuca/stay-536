@@ -122,10 +122,10 @@ function logSpawn(ob) {
     time: GAME_STATE.time,
   };
   if (ob.type === 'laser') {
-    summary.gapY = ob.gapY;
-    summary.gapH = ob.gapH;
-    summary.topH = ob.topH;
-    summary.botH = ob.botH;
+    summary.gapWidth = ob.gapWidth;
+    summary.wallLeftX = ob.wallLeftX;
+    summary.wallRightX = ob.wallRightX;
+    summary.laserHeight = ob.height;
   } else if (ob.type === 'narrow') {
     summary.gapCenterX = ob.gapCenterX;
     summary.gapTopWidth = ob.gapTopWidth;
@@ -149,23 +149,24 @@ function spawnObstacle() {
   const laserThreshold = obstacle.laserChance;
   const narrowThreshold = obstacle.laserChance + obstacle.narrowChance;
 
-  // With a set chance, spawn a laser instead of a block with a gap.
+  // With a set chance, spawn a laser instead of a block with a gap: two vertical
+  // columns with a fixed central gate centered on x=450. The passable window
+  // [387, 513] overlaps the orbit, so the duo can cross when |cos(theta)| <= 0.525.
   if (roll < laserThreshold) {
-    const topH = obstacle.laserTopH;
-    const gapH = obstacle.laserGapH;
-    const botH = obstacle.laserBotH;
-    const gapY = topH;
-    const laserHeight = gapY + gapH + botH;
+    const gapWidth = obstacle.laserGapWidth;
+    const laserHeight = obstacle.laserHeight;
+    const gapCenterX = canvasCfg.width / 2;
+    const wallLeftX = gapCenterX - gapWidth / 2;
+    const wallRightX = gapCenterX + gapWidth / 2;
 
     const spawned = {
       x: 0,
       y: -laserHeight,
       width: blockWidth,
       height: laserHeight,
-      topH,
-      gapY,
-      gapH,
-      botH,
+      gapWidth,
+      wallLeftX,
+      wallRightX,
       baseSpeed,
       speed: baseSpeed,
       type: 'laser',
@@ -269,8 +270,9 @@ function gameOver(cx, cy, color, obstacle) {
           obstacleY: obstacle ? obstacle.y : null,
           gapX: obstacle ? obstacle.gapX : null,
           gapWidth: obstacle ? obstacle.gapWidth : null,
-          gapY: obstacle ? obstacle.gapY : null,
-          gapH: obstacle ? obstacle.gapH : null,
+          wallLeftX: obstacle ? obstacle.wallLeftX : null,
+          wallRightX: obstacle ? obstacle.wallRightX : null,
+          laserHeight: obstacle ? obstacle.height : null,
           speed: obstacle ? obstacle.speed : null,
           sphere1,
           sphere2,
@@ -297,15 +299,10 @@ function sphereHitsObstacle(sx, sy, obstacle) {
   const rects = [];
 
   if (obstacle.type === 'laser') {
-    const { x, y, width, topH, gapY, gapH, botH } = obstacle;
+    const { x, y, width, height, wallLeftX, wallRightX } = obstacle;
     rects.push(
-      { left: x, top: y, right: x + width, bottom: y + topH },
-      {
-        left: x,
-        top: y + gapY + gapH,
-        right: x + width,
-        bottom: y + gapY + gapH + botH,
-      },
+      { left: x, top: y, right: wallLeftX, bottom: y + height },
+      { left: wallRightX, top: y, right: x + width, bottom: y + height },
     );
   } else if (obstacle.type === 'narrow') {
     for (const r of obstacle.rects) {
@@ -448,8 +445,9 @@ function update(dt) {
             y: ob.y,
             speed: ob.speed,
             gapX: ob.gapX,
-            gapY: ob.gapY,
-            gapH: ob.gapH,
+            wallLeftX: ob.wallLeftX,
+            wallRightX: ob.wallRightX,
+            laserHeight: ob.height,
           })),
         }),
     );
@@ -559,16 +557,16 @@ function drawObstacles() {
 
   for (const ob of GAME_STATE.obstacles) {
     if (ob.type === 'laser') {
-      const bands = [
-        { bx: ob.x, by: ob.y, bw: ob.width, bh: ob.topH },
-        { bx: ob.x, by: ob.y + ob.gapY + ob.gapH, bw: ob.width, bh: ob.botH },
+      const walls = [
+        { bx: ob.x, by: ob.y, bw: ob.wallLeftX, bh: ob.height },
+        { bx: ob.wallRightX, by: ob.y, bw: ob.width - ob.wallRightX, bh: ob.height },
       ];
       ctx.shadowBlur = 22;
       ctx.shadowColor = laserColor;
       ctx.fillStyle = laserColor;
-      for (const band of bands) {
-        ctx.fillRect(band.bx, band.by, band.bw, band.bh);
-        ctx.fillRect(band.bx, band.by, band.bw, band.bh);
+      for (const wall of walls) {
+        ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
+        ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
       }
       continue;
     }

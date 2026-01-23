@@ -48,16 +48,11 @@ function sphereHitsBlock(sx, sy, radius, obstacle) {
 }
 
 function sphereHitsLaser(sx, sy, radius, obstacle) {
-  const { x, y, width, topH, gapY, gapH, botH } = obstacle;
+  const { x, y, width, height, wallLeftX, wallRightX } = obstacle;
 
   return (
-    sphereHitsRect(sx, sy, radius, rectFromEdges(x, y, x + width, y + topH)) ||
-    sphereHitsRect(
-      sx,
-      sy,
-      radius,
-      rectFromEdges(x, y + gapY + gapH, x + width, y + gapY + gapH + botH),
-    )
+    sphereHitsRect(sx, sy, radius, rectFromEdges(x, y, wallLeftX, y + height)) ||
+    sphereHitsRect(sx, sy, radius, rectFromEdges(wallRightX, y, x + width, y + height))
   );
 }
 

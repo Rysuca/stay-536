@@ -44,9 +44,10 @@ const CONFIG = {
     blockGapMaxX: 510,
     laserChance: 0.2,
     laserColor: '#ff2a6d',
-    laserTopH: 40,
-    laserGapH: 155,
-    laserBotH: 40,
+    // Vertical gates: two columns with a fixed central gap, always centered on
+    // x=450 so the passable window [387, 513] overlaps the orbit (r=120).
+    laserGapWidth: 150,
+    laserHeight: 200,
     narrowChance: 0.15,
     gapTopWidth: 190,
     gapBottomWidth: 100,
