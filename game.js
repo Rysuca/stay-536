@@ -10,6 +10,7 @@ canvas.height = CONFIG.canvas.height;
 const GAME_STATE = {
   running: false,
   dying: false,
+  paused: false,
   score: 0,
   theta: 0,
   time: 0,
@@ -658,8 +659,12 @@ let rafId = null;
 function gameLoop(timestamp) {
   const dt = Math.min((timestamp - lastTime) / 1000 || 0, 0.05);
 
-  if (GAME_STATE.running) {
+  if (GAME_STATE.running && !GAME_STATE.paused) {
     update(dt);
+    draw();
+  } else if (GAME_STATE.running && GAME_STATE.paused) {
+    // Freeze the simulation while paused; keep the frame fresh so any overlay
+    // drawn in later tickets sits on a stable snapshot.
     draw();
   } else if (GAME_STATE.dying) {
     // Keep animating the collision burst behind the game-over screen.
@@ -677,11 +682,24 @@ function gameLoop(timestamp) {
   rafId = requestAnimationFrame(gameLoop);
 }
 
+function pauseGame() {
+  if (!GAME_STATE.running || GAME_STATE.dying || GAME_STATE.paused) return;
+  GAME_STATE.paused = true;
+}
+
+function resumeGame() {
+  if (!GAME_STATE.paused) return;
+  GAME_STATE.paused = false;
+  // Reset the frame timestamp so the next dt after a pause is not a huge jump.
+  lastTime = performance.now();
+}
+
 function start() {
-  if (GAME_STATE.running) return;
+  if (GAME_STATE.running || GAME_STATE.paused) return;
 
   GAME_STATE.running = true;
   GAME_STATE.dying = false;
+  GAME_STATE.paused = false;
   GAME_STATE.score = 0;
   GAME_STATE.theta = 0;
   GAME_STATE.time = 0;
@@ -727,6 +745,7 @@ function start() {
 
 function stop() {
   GAME_STATE.running = false;
+  GAME_STATE.paused = false;
   if (rafId != null) {
     cancelAnimationFrame(rafId);
     rafId = null;

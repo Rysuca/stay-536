@@ -26,6 +26,11 @@ const CONFIG = {
     baseSpeed: 1.8,
   },
 
+  controls: {
+    // Keyboard code that toggles the pause overlay (wired up in later tickets).
+    pauseKey: 'KeyP',
+  },
+
   obstacle: {
     // px per second (applied as speed * dt, dt in seconds)
     baseFallSpeed: 105,
