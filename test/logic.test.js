@@ -87,30 +87,30 @@ test('sphereHitsBlock: sphere inside the left solid segment hits', () => {
   assert.strictEqual(sphereHitsBlock(20, 120, 12, obstacle), true);
 });
 
-test('sphereHitsLaser: sphere in the gap safe zone does not hit', () => {
+test('sphereHitsLaser: sphere centered in the vertical gate does not hit', () => {
   const obstacle = {
     x: 0,
     y: 100,
     width: 200,
-    topH: 40,
-    gapY: 40,
-    gapH: 60,
-    botH: 40,
+    height: 200,
+    gapWidth: 60,
+    wallLeftX: 70,
+    wallRightX: 130,
   };
-  assert.strictEqual(sphereHitsLaser(100, 170, 12, obstacle), false);
+  assert.strictEqual(sphereHitsLaser(100, 200, 12, obstacle), false);
 });
 
-test('sphereHitsLaser: sphere inside the top band hits', () => {
+test('sphereHitsLaser: sphere inside the left wall hits', () => {
   const obstacle = {
     x: 0,
     y: 100,
     width: 200,
-    topH: 40,
-    gapY: 40,
-    gapH: 60,
-    botH: 40,
+    height: 200,
+    gapWidth: 60,
+    wallLeftX: 70,
+    wallRightX: 130,
   };
-  assert.strictEqual(sphereHitsLaser(100, 110, 12, obstacle), true);
+  assert.strictEqual(sphereHitsLaser(30, 200, 12, obstacle), true);
 });
 
 test('sphereHitsNarrow: sphere against the wall in the narrowed part hits', () => {
@@ -153,7 +153,7 @@ test('sphereHitsNarrow: sphere centered in the opening passes clear', () => {
 
 test('sphereHitsObstacle: dispatches by obstacle type', () => {
   const block = { type: 'block', x: 0, y: 100, width: 200, height: 40, gapX: 100, gapWidth: 40 };
-  const laser = { type: 'laser', x: 0, y: 100, width: 200, topH: 40, gapY: 40, gapH: 60, botH: 40 };
+  const laser = { type: 'laser', x: 0, y: 100, width: 200, height: 200, gapWidth: 60, wallLeftX: 70, wallRightX: 130 };
   const narrow = {
     type: 'narrow',
     x: 0,
@@ -166,7 +166,7 @@ test('sphereHitsObstacle: dispatches by obstacle type', () => {
     ],
   };
   assert.strictEqual(sphereHitsObstacle(20, 120, 12, block), true);
-  assert.strictEqual(sphereHitsObstacle(100, 110, 12, laser), true);
+  assert.strictEqual(sphereHitsObstacle(30, 110, 12, laser), true);
   assert.strictEqual(sphereHitsObstacle(25, 150, 12, narrow), true);
   assert.strictEqual(sphereHitsObstacle(300, 300, 12, block), false);
 });
