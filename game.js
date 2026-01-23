@@ -134,7 +134,7 @@ function logSpawn(ob) {
     summary.gapX = ob.gapX;
     summary.gapWidth = ob.gapWidth;
   }
-  console.log('[SPAWN]', summary);
+  console.log('[SPAWN] ' + JSON.stringify(summary));
 }
 
 function spawnObstacle() {
@@ -259,18 +259,26 @@ function gameOver(cx, cy, color, obstacle) {
     const sin = Math.sin(GAME_STATE.theta);
     const sphere1 = { x: orbit.centerX + orbit.radius * cos, y: orbit.centerY + orbit.radius * sin };
     const sphere2 = { x: orbit.centerX - orbit.radius * cos, y: orbit.centerY - orbit.radius * sin };
-    console.warn('[COLLISION]', {
-      time: GAME_STATE.time,
-      score: GAME_STATE.score,
-      obstacleType: obstacle ? obstacle.type : null,
-      obstacleX: obstacle ? obstacle.x : null,
-      obstacleY: obstacle ? obstacle.y : null,
-      gapX: obstacle ? obstacle.gapX : null,
-      gapWidth: obstacle ? obstacle.gapWidth : null,
-      sphere1,
-      sphere2,
-      theta: GAME_STATE.theta,
-    });
+    console.warn(
+      '[COLLISION] ' +
+        JSON.stringify({
+          time: GAME_STATE.time,
+          score: GAME_STATE.score,
+          obstacleType: obstacle ? obstacle.type : null,
+          obstacleX: obstacle ? obstacle.x : null,
+          obstacleY: obstacle ? obstacle.y : null,
+          gapX: obstacle ? obstacle.gapX : null,
+          gapWidth: obstacle ? obstacle.gapWidth : null,
+          gapY: obstacle ? obstacle.gapY : null,
+          gapH: obstacle ? obstacle.gapH : null,
+          speed: obstacle ? obstacle.speed : null,
+          sphere1,
+          sphere2,
+          sphere1RelToBlock: obstacle ? { x: sphere1.x - obstacle.x, y: sphere1.y - obstacle.y } : null,
+          sphere2RelToBlock: obstacle ? { x: sphere2.x - obstacle.x, y: sphere2.y - obstacle.y } : null,
+          theta: GAME_STATE.theta,
+        }),
+    );
   }
   GAME_STATE.running = false;
   GAME_STATE.dying = true;
@@ -427,15 +435,23 @@ function update(dt) {
 
   if (CONFIG.DEBUG && GAME_STATE.time - lastSummaryLog >= 1) {
     lastSummaryLog = GAME_STATE.time;
-    console.log('[STATE]', {
-      time: GAME_STATE.time,
-      obstaclesCount: GAME_STATE.obstacles.length,
-      rotationSpeed,
-      difficultyMultiplier: multiplier,
-      spawnInterval,
-    });
-    console.table(
-      GAME_STATE.obstacles.map((ob) => ({ type: ob.type, y: ob.y, speed: ob.speed })),
+    console.log(
+      '[STATE] ' +
+        JSON.stringify({
+          time: GAME_STATE.time,
+          obstaclesCount: GAME_STATE.obstacles.length,
+          rotationSpeed,
+          difficultyMultiplier: multiplier,
+          spawnInterval,
+          obstacles: GAME_STATE.obstacles.map((ob) => ({
+            type: ob.type,
+            y: ob.y,
+            speed: ob.speed,
+            gapX: ob.gapX,
+            gapY: ob.gapY,
+            gapH: ob.gapH,
+          })),
+        }),
     );
   }
 
@@ -676,20 +692,23 @@ function start() {
   GAME_STATE.spawnTimer = 0;
 
   if (CONFIG.DEBUG) {
-    console.log('[GAME] session start', {
-      width: canvas.width,
-      height: canvas.height,
-      xc: CONFIG.orbit.centerX,
-      yc: CONFIG.orbit.centerY,
-      orbitRadius: CONFIG.orbit.radius,
-      sphereRadius: CONFIG.sphere.radius,
-      baseFallSpeed: CONFIG.obstacle.baseFallSpeed,
-      baseSpeed: CONFIG.rotation.baseSpeed,
-      spawnInterval: CONFIG.obstacle.spawnInterval,
-      rampSeconds: CONFIG.difficulty.rampSeconds,
-      maxMultiplier: CONFIG.difficulty.maxMultiplier,
-      theme: currentThemeId,
-    });
+    console.log(
+      '[GAME] session start ' +
+        JSON.stringify({
+          width: canvas.width,
+          height: canvas.height,
+          xc: CONFIG.orbit.centerX,
+          yc: CONFIG.orbit.centerY,
+          orbitRadius: CONFIG.orbit.radius,
+          sphereRadius: CONFIG.sphere.radius,
+          baseFallSpeed: CONFIG.obstacle.baseFallSpeed,
+          baseSpeed: CONFIG.rotation.baseSpeed,
+          spawnInterval: CONFIG.obstacle.spawnInterval,
+          rampSeconds: CONFIG.difficulty.rampSeconds,
+          maxMultiplier: CONFIG.difficulty.maxMultiplier,
+          theme: currentThemeId,
+        }),
+    );
   }
 
   const gameOverScreen = document.getElementById('gameOverScreen');
