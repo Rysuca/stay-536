@@ -789,6 +789,43 @@ function stop() {
   }
 }
 
+function bindPauseMenuButtons() {
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (resumeBtn) {
+    resumeBtn.addEventListener('click', resumeGame);
+  }
+
+  const pauseRestartBtn = document.getElementById('pauseRestartBtn');
+  if (pauseRestartBtn) {
+    pauseRestartBtn.addEventListener('click', () => {
+      const pauseScreen = document.getElementById('pauseScreen');
+      if (pauseScreen) {
+        pauseScreen.style.display = 'none';
+      }
+      start();
+    });
+  }
+
+  const pauseMenuBtn = document.getElementById('pauseMenuBtn');
+  if (pauseMenuBtn) {
+    pauseMenuBtn.addEventListener('click', () => {
+      stop();
+      const pauseScreen = document.getElementById('pauseScreen');
+      if (pauseScreen) {
+        pauseScreen.style.display = 'none';
+      }
+      const gameOverScreen = document.getElementById('gameOverScreen');
+      if (gameOverScreen) {
+        gameOverScreen.style.display = 'none';
+      }
+      const startScreen = document.getElementById('startScreen');
+      if (startScreen) {
+        startScreen.style.display = 'flex';
+      }
+    });
+  }
+}
+
 function startGame() {
   start();
   const startScreen = document.getElementById('startScreen');
@@ -830,10 +867,12 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     bindStartControls();
     bindPauseControls();
+    bindPauseMenuButtons();
     buildThemePicker();
   });
 } else {
   bindStartControls();
   bindPauseControls();
+  bindPauseMenuButtons();
   buildThemePicker();
 }
