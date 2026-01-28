@@ -12,11 +12,7 @@
   <canvas id="game"></canvas>
   <div id="startScreen">
     <h1 class="title">ORBITAL DRIFT</h1>
-    <p class="rules">Rotate the duo with the <span class="key">Left/Right</span> arrows or <span class="key">A/D</span> keys so both spheres slip through the gaps. Don't clip the walls!</p>
-    <div class="themePicker">
-      <span class="themePickerLabel">THEME:</span>
-      <div id="themeButtons" class="themeButtons"></div>
-    </div>
+    <p class="rules">Spin the duo with the <span class="key">Left/Right</span> arrows or <span class="key">A/D</span> keys so both spheres slip through the gaps. Don't clip the walls!</p>
     <button id="startBtn">START</button>
   </div>
   <div id="gameOverScreen" style="display: none;">
@@ -37,6 +33,10 @@
     <span id="hudScore">0</span>
     <span id="hudTime">00:00</span>
     <button id="pauseBtn" type="button" style="pointer-events: auto;">PAUSE</button>
+  </div>
+  <div class="themePicker" id="themePickerHolder" style="display: none;">
+    <span class="themePickerLabel">THEME:</span>
+    <div id="themeButtons" class="themeButtons"></div>
   </div>
 </body>
 </html>
