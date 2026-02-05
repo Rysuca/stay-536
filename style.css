@@ -251,3 +251,107 @@ body {
 #pauseSettingsBtn:active {
   transform: scale(0.97);
 }
+
+#startScreen #settingsGear {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  line-height: 1;
+  color: #05d9e8;
+  text-shadow: 0 0 8px #05d9e8;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(5, 217, 232, 0.4);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(5, 217, 232, 0.5), inset 0 0 12px rgba(5, 217, 232, 0.3);
+  cursor: pointer;
+  z-index: 30;
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+#startScreen #settingsGear:hover {
+  background: rgba(5, 217, 232, 0.15);
+  box-shadow: 0 0 24px rgba(5, 217, 232, 0.95), inset 0 0 24px rgba(5, 217, 232, 0.6);
+  transform: rotate(60deg);
+}
+
+#startScreen #settingsGear:active {
+  transform: rotate(60deg) scale(0.95);
+}
+
+#settingsScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 20;
+  font-family: 'Courier New', monospace;
+  user-select: none;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+#settingsScreen .title {
+  margin: 0 0 32px;
+  font-size: 52px;
+  letter-spacing: 10px;
+  color: #05d9e8;
+  text-shadow: 0 0 10px #05d9e8, 0 0 30px #05d9e8, 0 0 60px rgba(5, 217, 232, 0.7);
+}
+
+#settingsScreen .settingsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 48px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(5, 217, 232, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 0 24px rgba(5, 217, 232, 0.35), inset 0 0 20px rgba(5, 217, 232, 0.1);
+}
+
+#settingsScreen #settingsThemeButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+#settingsScreen #settingsBackBtn {
+  padding: 12px 40px;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: #ff2a6d;
+  text-shadow: 0 0 8px #ff2a6d;
+  background: transparent;
+  border: 2px solid #ff2a6d;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(255, 42, 109, 0.6), inset 0 0 12px rgba(255, 42, 109, 0.4);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.1s ease;
+}
+
+#settingsScreen #settingsBackBtn:hover {
+  background: rgba(255, 42, 109, 0.15);
+  box-shadow: 0 0 26px rgba(255, 42, 109, 0.9), inset 0 0 26px rgba(255, 42, 109, 0.6);
+  transform: scale(1.04);
+}
+
+#settingsScreen #settingsBackBtn:active {
+  transform: scale(0.97);
+}
