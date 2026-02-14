@@ -52,7 +52,7 @@ function applyTheme(themeId) {
 applyTheme(currentThemeId);
 
 function buildThemePicker() {
-  const container = document.getElementById('themeButtons');
+  const container = document.getElementById('settingsThemeButtons');
   if (!container) return;
 
   for (const themeId of Object.keys(CONFIG.themes)) {
@@ -73,9 +73,65 @@ function buildThemePicker() {
 }
 
 function highlightThemeButton(themeId) {
-  const buttons = document.querySelectorAll('#themeButtons .themeBtn');
+  const buttons = document.querySelectorAll('#settingsThemeButtons .themeBtn');
   for (const btn of buttons) {
     btn.classList.toggle('active', btn.dataset.theme === themeId);
+  }
+}
+
+let settingsSource = 'main';
+
+function openSettings(source) {
+  settingsSource = source;
+  const settingsScreen = document.getElementById('settingsScreen');
+  if (settingsScreen) {
+    settingsScreen.style.display = 'flex';
+  }
+  if (source === 'pause') {
+    const pauseScreen = document.getElementById('pauseScreen');
+    if (pauseScreen) {
+      pauseScreen.style.display = 'none';
+    }
+  } else {
+    const startScreen = document.getElementById('startScreen');
+    if (startScreen) {
+      startScreen.style.display = 'none';
+    }
+  }
+}
+
+function closeSettings() {
+  const settingsScreen = document.getElementById('settingsScreen');
+  if (settingsScreen) {
+    settingsScreen.style.display = 'none';
+  }
+  if (settingsSource === 'pause') {
+    const pauseScreen = document.getElementById('pauseScreen');
+    if (pauseScreen) {
+      pauseScreen.style.display = 'flex';
+    }
+  } else {
+    const startScreen = document.getElementById('startScreen');
+    if (startScreen) {
+      startScreen.style.display = 'flex';
+    }
+  }
+}
+
+function bindSettingsControls() {
+  const settingsGear = document.getElementById('settingsGear');
+  if (settingsGear) {
+    settingsGear.addEventListener('click', () => openSettings('main'));
+  }
+
+  const pauseSettingsBtn = document.getElementById('pauseSettingsBtn');
+  if (pauseSettingsBtn) {
+    pauseSettingsBtn.addEventListener('click', () => openSettings('pause'));
+  }
+
+  const settingsBackBtn = document.getElementById('settingsBackBtn');
+  if (settingsBackBtn) {
+    settingsBackBtn.addEventListener('click', closeSettings);
   }
 }
 
@@ -868,11 +924,13 @@ if (document.readyState === 'loading') {
     bindStartControls();
     bindPauseControls();
     bindPauseMenuButtons();
+    bindSettingsControls();
     buildThemePicker();
   });
 } else {
   bindStartControls();
   bindPauseControls();
   bindPauseMenuButtons();
+  bindSettingsControls();
   buildThemePicker();
 }
