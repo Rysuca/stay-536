@@ -778,6 +778,12 @@ function bindPauseControls() {
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyP' && e.code !== 'Escape') return;
     e.preventDefault();
+    const settingsScreen = document.getElementById('settingsScreen');
+    const settingsVisible = settingsScreen && settingsScreen.style.display !== 'none';
+    if (settingsVisible) {
+      closeSettings();
+      return;
+    }
     togglePause();
   });
 
