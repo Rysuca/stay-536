@@ -63,6 +63,8 @@ const CONFIG = {
     narrowCenterMaxX: 470,
     narrowColor: '#a8ff3e',
     gapGlowColor: '#05d9e8',
+    // How fast a newly spawned obstacle fades/scales in (spawnT units per second).
+    spawnAnimationSpeed: 4,
   },
 
   particles: {

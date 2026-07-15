@@ -229,6 +229,8 @@ function spawnObstacle() {
       type: 'laser',
       passed: false,
       counted: false,
+      spawnT: 0,
+      spawnSpeed: obstacle.spawnAnimationSpeed,
     };
     GAME_STATE.obstacles.push(spawned);
     if (CONFIG.DEBUG) logSpawn(spawned);
@@ -270,6 +272,8 @@ function spawnObstacle() {
       passed: false,
       counted: false,
       rects,
+      spawnT: 0,
+      spawnSpeed: obstacle.spawnAnimationSpeed,
     };
     GAME_STATE.obstacles.push(spawned);
     if (CONFIG.DEBUG) logSpawn(spawned);
@@ -301,6 +305,8 @@ function spawnObstacle() {
     passed: false,
     counted: false,
     segments,
+    spawnT: 0,
+    spawnSpeed: obstacle.spawnAnimationSpeed,
   };
   GAME_STATE.obstacles.push(spawned);
   if (CONFIG.DEBUG) logSpawn(spawned);
@@ -517,6 +523,9 @@ function update(dt) {
     const ob = GAME_STATE.obstacles[i];
     ob.speed = ob.baseSpeed * multiplier;
     ob.y += ob.speed * dt;
+    if (ob.spawnT < 1) {
+      ob.spawnT = Math.min(1, ob.spawnT + dt * ob.spawnSpeed);
+    }
     if (!ob.passed && ob.y > passLine) {
       ob.passed = true;
     }
@@ -613,10 +622,18 @@ function drawObstacles() {
   ctx.fillStyle = color;
 
   for (const ob of GAME_STATE.obstacles) {
+    // Spawn animation: fade in with alpha and grow from the top edge downward.
+    ctx.save();
+    ctx.globalAlpha = ob.spawnT;
+    if (ob.spawnT < 1) {
+      ctx.translate(0, ob.y);
+      ctx.scale(1, ob.spawnT);
+    }
+
     if (ob.type === 'laser') {
       const walls = [
-        { bx: ob.x, by: ob.y, bw: ob.wallLeftX, bh: ob.height },
-        { bx: ob.wallRightX, by: ob.y, bw: ob.width - ob.wallRightX, bh: ob.height },
+        { bx: ob.x, by: 0, bw: ob.wallLeftX, bh: ob.height },
+        { bx: ob.wallRightX, by: 0, bw: ob.width - ob.wallRightX, bh: ob.height },
       ];
       ctx.shadowBlur = 22;
       ctx.shadowColor = laserColor;
@@ -625,14 +642,15 @@ function drawObstacles() {
         ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
         ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
       }
+      ctx.restore();
       continue;
     }
 
     if (ob.type === 'narrow') {
       const topHalf = ob.gapTopWidth / 2;
       const bottomHalf = ob.gapBottomWidth / 2;
-      const topY = ob.y;
-      const bottomY = ob.y + ob.height;
+      const topY = 0;
+      const bottomY = ob.height;
       ctx.shadowBlur = 22;
       ctx.shadowColor = narrowColor;
       ctx.fillStyle = narrowColor;
@@ -646,6 +664,7 @@ function drawObstacles() {
         ctx.fill();
         ctx.fill();
       }
+      ctx.restore();
       continue;
     }
 
@@ -653,7 +672,7 @@ function drawObstacles() {
     ctx.shadowColor = color;
     ctx.fillStyle = color;
     for (const seg of ob.segments) {
-      ctx.fillRect(ob.x + seg.x, ob.y, seg.w, ob.height);
+      ctx.fillRect(ob.x + seg.x, 0, seg.w, ob.height);
     }
 
     // Soft neon glow along the center of the gap so the safe lane reads clearly.
@@ -666,16 +685,18 @@ function drawObstacles() {
     glow.addColorStop(0.5, hexToRgba(GAME_STATE.colors.gapGlowColor, 0.18));
     glow.addColorStop(1, hexToRgba(GAME_STATE.colors.gapGlowColor, 0));
     ctx.fillStyle = glow;
-    ctx.fillRect(gapLeft, ob.y, ob.gapWidth, ob.height);
+    ctx.fillRect(gapLeft, 0, ob.gapWidth, ob.height);
     ctx.strokeStyle = glowColor;
     ctx.globalAlpha = 0.7;
     ctx.lineWidth = 1;
     ctx.shadowBlur = 12;
     ctx.shadowColor = glowColor;
     ctx.beginPath();
-    ctx.moveTo(ob.gapX, ob.y);
-    ctx.lineTo(ob.gapX, ob.y + ob.height);
+    ctx.moveTo(ob.gapX, 0);
+    ctx.lineTo(ob.gapX, ob.height);
     ctx.stroke();
+    ctx.restore();
+
     ctx.restore();
   }
 
