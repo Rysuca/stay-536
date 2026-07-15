@@ -121,7 +121,16 @@ function closeSettings() {
 function bindSettingsControls() {
   const settingsGear = document.getElementById('settingsGear');
   if (settingsGear) {
-    settingsGear.addEventListener('click', () => openSettings('main'));
+    settingsGear.addEventListener('click', () => {
+      if (GAME_STATE.running && !GAME_STATE.paused) {
+        pauseGame();
+        openSettings('pause');
+      } else if (GAME_STATE.paused) {
+        openSettings('pause');
+      } else {
+        openSettings('main');
+      }
+    });
   }
 
   const pauseSettingsBtn = document.getElementById('pauseSettingsBtn');

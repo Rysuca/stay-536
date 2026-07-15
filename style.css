@@ -252,15 +252,12 @@ body {
   transform: scale(0.97);
 }
 
-#startScreen #settingsGear {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
+#hud #settingsGear {
+  width: 40px;
+  height: 40px;
   padding: 0;
   font-family: 'Courier New', monospace;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   color: #05d9e8;
   text-shadow: 0 0 8px #05d9e8;
@@ -269,17 +266,16 @@ body {
   border-radius: 50%;
   box-shadow: 0 0 12px rgba(5, 217, 232, 0.5), inset 0 0 12px rgba(5, 217, 232, 0.3);
   cursor: pointer;
-  z-index: 30;
   transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
-#startScreen #settingsGear:hover {
+#hud #settingsGear:hover {
   background: rgba(5, 217, 232, 0.15);
   box-shadow: 0 0 24px rgba(5, 217, 232, 0.95), inset 0 0 24px rgba(5, 217, 232, 0.6);
   transform: rotate(60deg);
 }
 
-#startScreen #settingsGear:active {
+#hud #settingsGear:active {
   transform: rotate(60deg) scale(0.95);
 }
 
