@@ -32,6 +32,30 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function shadeHex(hex, amount) {
+  const value = hex.replace('#', '');
+  const r = Math.min(255, Math.max(0, parseInt(value.substring(0, 2), 16) + amount));
+  const g = Math.min(255, Math.max(0, parseInt(value.substring(2, 4), 16) + amount));
+  const b = Math.min(255, Math.max(0, parseInt(value.substring(4, 6), 16) + amount));
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+function drawRoundRect(x, y, w, h, r) {
+  if (w <= 0 || h <= 0) return;
+  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.arcTo(x + w, y, x + w, y + radius, radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.arcTo(x + w, y + h, x + w - radius, y + h, radius);
+  ctx.lineTo(x + radius, y + h);
+  ctx.arcTo(x, y + h, x, y + h - radius, radius);
+  ctx.lineTo(x, y + radius);
+  ctx.arcTo(x, y, x + radius, y, radius);
+  ctx.closePath();
+}
+
 function applyTheme(themeId) {
   currentThemeId = themeId;
   const theme = CONFIG.themes[themeId] || CONFIG.themes[CONFIG.defaultTheme];
@@ -624,6 +648,7 @@ function drawObstacles() {
   const color = GAME_STATE.colors.obstacleColor;
   const laserColor = GAME_STATE.colors.laserColor;
   const narrowColor = GAME_STATE.colors.narrowColor;
+  const cornerRadius = 6;
 
   ctx.save();
   ctx.shadowBlur = 14;
@@ -646,32 +671,45 @@ function drawObstacles() {
       ];
       ctx.shadowBlur = 22;
       ctx.shadowColor = laserColor;
-      ctx.fillStyle = laserColor;
       for (const wall of walls) {
-        ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
-        ctx.fillRect(wall.bx, wall.by, wall.bw, wall.bh);
+        if (wall.bw <= 0 || wall.bh <= 0) continue;
+        const isLeftWall = wall.bx === ob.x;
+        const innerX = isLeftWall ? wall.bx + wall.bw : wall.bx;
+        const outerX = isLeftWall ? wall.bx : wall.bx + wall.bw;
+        const grad = ctx.createLinearGradient(innerX, 0, outerX, 0);
+        grad.addColorStop(0, shadeHex(laserColor, 80));
+        grad.addColorStop(1, shadeHex(laserColor, -70));
+        ctx.fillStyle = grad;
+        drawRoundRect(wall.bx, wall.by, wall.bw, wall.bh, cornerRadius);
+        ctx.fill();
+        ctx.fill();
+        ctx.strokeStyle = shadeHex(laserColor, 130);
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
       }
       ctx.restore();
       continue;
     }
 
     if (ob.type === 'narrow') {
-      const topHalf = ob.gapTopWidth / 2;
-      const bottomHalf = ob.gapBottomWidth / 2;
-      const topY = 0;
-      const bottomY = ob.height;
       ctx.shadowBlur = 22;
       ctx.shadowColor = narrowColor;
-      ctx.fillStyle = narrowColor;
-      const left = [ob.x, topY, ob.gapCenterX - topHalf, topY, ob.gapCenterX - bottomHalf, bottomY, ob.x, bottomY];
-      const right = [ob.gapCenterX + topHalf, topY, ob.x + ob.width, topY, ob.x + ob.width, bottomY, ob.gapCenterX + bottomHalf, bottomY];
-      for (const poly of [left, right]) {
-        ctx.beginPath();
-        ctx.moveTo(poly[0], poly[1]);
-        for (let i = 2; i < poly.length; i += 2) ctx.lineTo(poly[i], poly[i + 1]);
-        ctx.closePath();
+      for (const r of ob.rects) {
+        const segW = r.right - r.left;
+        const segH = r.bottom - r.top;
+        if (segW <= 0 || segH <= 0) continue;
+        const grad = ctx.createLinearGradient(0, r.top, 0, r.bottom);
+        grad.addColorStop(0, shadeHex(narrowColor, 70));
+        grad.addColorStop(1, shadeHex(narrowColor, -60));
+        ctx.fillStyle = grad;
+        drawRoundRect(ob.x + r.left, r.top, segW, segH, Math.min(cornerRadius, segH / 2));
         ctx.fill();
         ctx.fill();
+        ctx.strokeStyle = shadeHex(narrowColor, 120);
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
       }
       ctx.restore();
       continue;
@@ -679,9 +717,20 @@ function drawObstacles() {
 
     ctx.shadowBlur = 14;
     ctx.shadowColor = color;
-    ctx.fillStyle = color;
     for (const seg of ob.segments) {
-      ctx.fillRect(ob.x + seg.x, 0, seg.w, ob.height);
+      if (seg.w <= 0 || ob.height <= 0) continue;
+      const segX = ob.x + seg.x;
+      const grad = ctx.createLinearGradient(segX, 0, segX, ob.height);
+      grad.addColorStop(0, shadeHex(color, 80));
+      grad.addColorStop(1, shadeHex(color, -60));
+      ctx.fillStyle = grad;
+      drawRoundRect(segX, 0, seg.w, ob.height, cornerRadius);
+      ctx.fill();
+      ctx.fill();
+      ctx.strokeStyle = shadeHex(color, 120);
+      ctx.lineWidth = 1;
+      ctx.shadowBlur = 6;
+      ctx.stroke();
     }
 
     // Soft neon glow along the center of the gap so the safe lane reads clearly.
