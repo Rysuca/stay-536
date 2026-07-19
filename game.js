@@ -388,6 +388,7 @@ function gameOver(cx, cy, color, obstacle) {
   if (gameOverScreen) {
     gameOverScreen.style.display = 'flex';
   }
+  updateHudVisibility();
 }
 
 function sphereHitsObstacle(sx, sy, obstacle) {
@@ -779,6 +780,17 @@ function drawObstacles() {
   ctx.restore();
 }
 
+function updateHudVisibility() {
+  const hud = document.getElementById('hud');
+  if (!hud) return;
+  const visible = GAME_STATE.running && !GAME_STATE.paused && !GAME_STATE.dying;
+  hud.classList.toggle('visible', visible);
+  const pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) {
+    pauseBtn.textContent = GAME_STATE.paused ? 'RESUME' : 'PAUSE';
+  }
+}
+
 function updateHUD() {
   const scoreEl = document.getElementById('hudScore');
   if (scoreEl) {
@@ -842,6 +854,7 @@ function pauseGame() {
   if (pauseScreen) {
     pauseScreen.style.display = 'flex';
   }
+  updateHudVisibility();
 }
 
 function resumeGame() {
@@ -853,6 +866,7 @@ function resumeGame() {
   }
   // Reset the frame timestamp so the next dt after a pause is not a huge jump.
   lastTime = performance.now();
+  updateHudVisibility();
 }
 
 function togglePause() {
@@ -937,6 +951,7 @@ function start() {
   if (rafId == null) {
     rafId = requestAnimationFrame(gameLoop);
   }
+  updateHudVisibility();
 }
 
 function stop() {
@@ -946,6 +961,7 @@ function stop() {
     cancelAnimationFrame(rafId);
     rafId = null;
   }
+  updateHudVisibility();
 }
 
 function bindPauseMenuButtons() {

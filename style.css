@@ -17,7 +17,7 @@ body {
   position: absolute;
   top: 16px;
   left: 16px;
-  display: flex;
+  display: none;
   gap: 24px;
   padding: 10px 18px;
   z-index: 10;
@@ -32,6 +32,11 @@ body {
   border: 1px solid rgba(5, 217, 232, 0.35);
   border-radius: 6px;
   user-select: none;
+}
+
+#hud.visible {
+  display: flex;
+  pointer-events: auto;
 }
 
 #startScreen,
