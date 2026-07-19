@@ -677,8 +677,8 @@ function drawObstacles() {
     // Spawn animation: fade in with alpha and grow from the top edge downward.
     ctx.save();
     ctx.globalAlpha = ob.spawnT;
+    ctx.translate(0, ob.y);
     if (ob.spawnT < 1) {
-      ctx.translate(0, ob.y);
       ctx.scale(1, ob.spawnT);
     }
 
