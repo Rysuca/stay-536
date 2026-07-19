@@ -76,6 +76,12 @@ const CONFIG = {
     burstSpeed: 260,
     burstLife: 0.9,
     burstSize: 4,
+    // Celebration burst thrown when an obstacle is cleared (passed but not yet counted).
+    passCount: 10,
+    passLifespan: 0.7,
+    passSize: 3,
+    passSpeed: 130,
+    passColors: ['#ff2a6d', '#05d9e8', '#a8ff3e'],
   },
 
   difficulty: {

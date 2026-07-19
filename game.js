@@ -568,10 +568,28 @@ function update(dt) {
   }
 
   // Award a point for every obstacle the player has cleared.
+  const { passCount, passLifespan, passSize, passSpeed, passColors } = CONFIG.particles;
   for (const ob of GAME_STATE.obstacles) {
     if (ob.passed && !ob.counted) {
       ob.counted = true;
       GAME_STATE.score += 1;
+
+      // Celebrate the cleared gap with a small neon burst at the passage point.
+      const gapX =
+        ob.type === 'laser'
+          ? (ob.wallLeftX + ob.wallRightX) / 2
+          : ob.type === 'narrow'
+            ? ob.gapCenterX
+            : ob.gapX;
+      emitParticles(
+        gapX,
+        passLine,
+        passCount,
+        passColors[Math.floor(Math.random() * passColors.length)],
+        passSpeed,
+        passLifespan,
+        passSize,
+      );
     }
   }
 
