@@ -257,6 +257,41 @@ body {
   transform: scale(0.97);
 }
 
+#hud #pauseBtn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  line-height: 1;
+  color: #05d9e8;
+  text-shadow: 0 0 8px #05d9e8;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(5, 217, 232, 0.4);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(5, 217, 232, 0.5), inset 0 0 12px rgba(5, 217, 232, 0.3);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+#hud #pauseBtn:hover {
+  background: rgba(5, 217, 232, 0.15);
+  box-shadow: 0 0 24px rgba(5, 217, 232, 0.95), inset 0 0 24px rgba(5, 217, 232, 0.6);
+}
+
+#hud #pauseBtn:active {
+  transform: scale(0.95);
+}
+
+#hud #pauseBtn #pauseIcon {
+  display: block;
+  letter-spacing: 2px;
+  text-indent: 2px;
+}
+
 #hud #settingsGear {
   width: 40px;
   height: 40px;

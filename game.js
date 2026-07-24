@@ -787,7 +787,11 @@ function updateHudVisibility() {
   hud.classList.toggle('visible', visible);
   const pauseBtn = document.getElementById('pauseBtn');
   if (pauseBtn) {
-    pauseBtn.textContent = GAME_STATE.paused ? 'RESUME' : 'PAUSE';
+    pauseBtn.setAttribute('aria-label', GAME_STATE.paused ? 'Resume' : 'Pause');
+  }
+  const pauseIcon = document.getElementById('pauseIcon');
+  if (pauseIcon) {
+    pauseIcon.textContent = GAME_STATE.paused ? '▶\uFE0E' : '❙❙';
   }
 }
 
