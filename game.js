@@ -977,8 +977,7 @@ function bindPauseMenuButtons() {
   const pauseRestartBtn = document.getElementById('pauseRestartBtn');
   if (pauseRestartBtn) {
     pauseRestartBtn.addEventListener('click', () => {
-      GAME_STATE.paused = false;
-      GAME_STATE.dying = false;
+      stop();
       const pauseScreen = document.getElementById('pauseScreen');
       if (pauseScreen) {
         pauseScreen.style.display = 'none';
